@@ -1,75 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.incident import Incident
-from app.models.evidence import Evidence
-from app.schemas.evidence import EvidenceOut, VALID_EVIDENCE_TYPES
-from app.services.storage_service import save_file
-from app.services.hashing_service import sha256_bytes
+from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 
-router = APIRouter(prefix="/api/evidence", tags=["evidence"])
+from app.database import Base
+from app.models.user import gen_id
 
 
-@router.post("", response_model=EvidenceOut, status_code=status.HTTP_201_CREATED)
-async def upload_evidence(
-    incident_id: str = Form(...),
-    type: str = Form(...),
-    notes: str | None = Form(None),
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if type not in VALID_EVIDENCE_TYPES:
-        raise HTTPException(
-            status_code=422,
-            detail=f"type must be one of {sorted(VALID_EVIDENCE_TYPES)}",
-        )
+class Evidence(Base):
+    """
+    A single piece of evidence attached to an incident: image, bank_sms,
+    chat_screenshot, audio, document, etc. The raw file is written to disk
+    (or object storage in prod) via storage_service; only metadata + a
+    SHA-256 integrity hash live in the DB.
+    """
+    __tablename__ = "evidence"
 
-    incident = (
-        db.query(Incident)
-        .filter(Incident.incident_id == incident_id, Incident.user_id == current_user.id)
-        .first()
-    )
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
+    evidence_id = Column(String, primary_key=True, default=lambda: gen_id("EVD"))
+    incident_id = Column(String, ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
 
-    content = await file.read()
-    if not content:
-        raise HTTPException(status_code=422, detail="Uploaded file is empty")
+    type = Column(String, nullable=False)          # image | bank_sms | chat_screenshot | audio | document
+    original_filename = Column(String, nullable=True)
+    stored_path = Column(String, nullable=True)     # server-side path/key
+    sha256_hash = Column(String, nullable=False)     # integrity/chain-of-custody hash
+    notes = Column(String, nullable=True)
 
-    file_hash = sha256_bytes(content)
-    stored_path = save_file(current_user.id, incident_id, file.filename, content)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    evidence = Evidence(
-        incident_id=incident_id,
-        user_id=current_user.id,
-        type=type,
-        original_filename=file.filename,
-        stored_path=stored_path,
-        sha256_hash=file_hash,
-        notes=notes,
-    )
-    db.add(evidence)
-    db.commit()
-    db.refresh(evidence)
-
-    return EvidenceOut.model_validate(evidence)
-
-
-@router.get("/{incident_id}", response_model=list[EvidenceOut])
-def list_evidence_for_incident(
-    incident_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    incident = (
-        db.query(Incident)
-        .filter(Incident.incident_id == incident_id, Incident.user_id == current_user.id)
-        .first()
-    )
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    return [EvidenceOut.model_validate(e) for e in incident.evidence]
+    incident = relationship("Incident", back_populates="evidence")
+    user = relationship("User", back_populates="evidence")

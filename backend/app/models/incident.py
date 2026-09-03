@@ -1,78 +1,81 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.incident import Incident
-from app.schemas.incident import IncidentCreate, IncidentOut
-from app.services.encryption_service import encrypt_text, decrypt_text
+from sqlalchemy import Column, String, DateTime, Boolean, JSON, ForeignKey, Text
+from sqlalchemy.orm import relationship
 
-router = APIRouter(prefix="/api/incidents", tags=["incidents"])
+from app.database import Base
+from app.models.user import gen_id
 
 
-def _incident_to_out(incident: Incident) -> IncidentOut:
-    description = decrypt_text(incident.description_encrypted)
-    return IncidentOut(**incident.to_contract_dict(description))
+class Incident(Base):
+    """
+    Mirrors the frozen incident structure in shared/api-contract.md exactly:
+    incident_id, user_id, description, date, time, location, people_involved,
+    categories, evidence (relationship), economic_details, digital_details.
 
+    `description` is stored encrypted at rest (see encryption_service) since it
+    is the most sensitive free-text field a survivor will write.
+    """
+    __tablename__ = "incidents"
 
-@router.post("", response_model=IncidentOut, status_code=status.HTTP_201_CREATED)
-def create_incident(
-    payload: IncidentCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    econ = payload.economic_details
-    digital = payload.digital_details
+    incident_id = Column(String, primary_key=True, default=lambda: gen_id("INC"))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
 
-    incident = Incident(
-        user_id=current_user.id,
-        description_encrypted=encrypt_text(payload.description),
-        date=payload.date,
-        time=payload.time,
-        location=payload.location,
-        people_involved=[p.model_dump() for p in payload.people_involved],
-        category_physical=payload.categories.physical,
-        category_economic=payload.categories.economic,
-        category_digital=payload.categories.digital,
-        economic_money_controlled=econ.money_controlled if econ else None,
-        economic_card_withheld=econ.card_withheld if econ else None,
-        economic_amount=econ.amount if econ else None,
-        digital_platform=digital.platform if digital else None,
-        digital_private_content_threat=digital.private_content_threat if digital else None,
-    )
-    db.add(incident)
-    db.commit()
-    db.refresh(incident)
+    description_encrypted = Column(Text, nullable=False)
 
-    return _incident_to_out(incident)
+    date = Column(String, nullable=False)   # "YYYY-MM-DD" - kept as string to match contract exactly
+    time = Column(String, nullable=True)    # "HH:MM"
+    location = Column(String, nullable=True)
 
+    people_involved = Column(JSON, default=list)   # [{"role": "...", "name": "optional"}]
 
-@router.get("", response_model=list[IncidentOut])
-def list_incidents(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    incidents = (
-        db.query(Incident)
-        .filter(Incident.user_id == current_user.id)
-        .order_by(Incident.created_at.desc())
-        .all()
-    )
-    return [_incident_to_out(i) for i in incidents]
+    # categories: {"physical": bool, "economic": bool, "digital": bool}
+    category_physical = Column(Boolean, default=False)
+    category_economic = Column(Boolean, default=False)
+    category_digital = Column(Boolean, default=False)
 
+    # economic_details: {"money_controlled", "card_withheld", "amount"}
+    economic_money_controlled = Column(Boolean, nullable=True)
+    economic_card_withheld = Column(Boolean, nullable=True)
+    economic_amount = Column(String, nullable=True)
 
-@router.get("/{incident_id}", response_model=IncidentOut)
-def get_incident(
-    incident_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    incident = (
-        db.query(Incident)
-        .filter(Incident.incident_id == incident_id, Incident.user_id == current_user.id)
-        .first()
-    )
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
+    # digital_details: {"platform", "private_content_threat"}
+    digital_platform = Column(String, nullable=True)
+    digital_private_content_threat = Column(Boolean, nullable=True)
 
-    return _incident_to_out(incident)
+    # Populated by Person 2's classifier after AI structuring runs.
+    ai_classification = Column(JSON, nullable=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="incidents")
+    evidence = relationship("Evidence", back_populates="incident", cascade="all, delete-orphan")
+
+    def to_contract_dict(self, description_plain: str) -> dict:
+        """Serialize back into the exact shape frozen in api-contract.md."""
+        return {
+            "incident_id": self.incident_id,
+            "user_id": self.user_id,
+            "description": description_plain,
+            "date": self.date,
+            "time": self.time,
+            "location": self.location,
+            "people_involved": self.people_involved or [],
+            "categories": {
+                "physical": self.category_physical,
+                "economic": self.category_economic,
+                "digital": self.category_digital,
+            },
+            "evidence": [{"evidence_id": e.evidence_id, "type": e.type} for e in self.evidence],
+            "economic_details": {
+                "money_controlled": self.economic_money_controlled,
+                "card_withheld": self.economic_card_withheld,
+                "amount": self.economic_amount,
+            },
+            "digital_details": {
+                "platform": self.digital_platform,
+                "private_content_threat": self.digital_private_content_threat,
+            },
+            "ai_classification": self.ai_classification,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

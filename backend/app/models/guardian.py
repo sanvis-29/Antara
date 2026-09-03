@@ -1,45 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.schemas.guardian import (
-    GuardianBackupRequest,
-    GuardianBackupResponse,
-    GuardianRecoverRequest,
-)
-from app.services.guardian_service import create_backup, recover_backup
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import relationship
 
-router = APIRouter(prefix="/api/guardian", tags=["guardian"])
+from app.database import Base
+from app.models.user import gen_id
 
 
-@router.post("/backup", response_model=GuardianBackupResponse)
-def backup(
-    payload: GuardianBackupRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    guardian, recovery_code = create_backup(
-        db, current_user.id, payload.guardian_name, payload.guardian_contact
-    )
-    return GuardianBackupResponse(
-        guardian_id=guardian.guardian_id,
-        recovery_code=recovery_code,
-        backed_up_at=guardian.last_backup_at,
-    )
-
-
-@router.post("/recover")
-def recover(payload: GuardianRecoverRequest, db: Session = Depends(get_db)):
+class Guardian(Base):
     """
-    Intentionally NOT behind get_current_user: recovery is the path used
-    precisely when a survivor has lost access to their original account/device.
-    Protection instead comes from the guardian_id + recovery_code pair, which
-    is never stored in plaintext.
+    A trusted contact who can hold an encrypted backup of a survivor's case
+    data for recovery if the survivor's device is lost, seized, or wiped.
+    The Guardian never sees plaintext -- backup_blob_encrypted is opaque to
+    everyone except someone holding the survivor's recovery key/PIN.
     """
-    try:
-        snapshot = recover_backup(db, payload.guardian_id, payload.recovery_code)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    __tablename__ = "guardians"
 
-    return snapshot
+    guardian_id = Column(String, primary_key=True, default=lambda: gen_id("GRD"))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+
+    name = Column(String, nullable=False)
+    contact = Column(String, nullable=True)  # phone/email, optional by design
+
+    backup_blob_encrypted = Column(Text, nullable=True)
+    recovery_code_hash = Column(String, nullable=True)
+
+    # Added timezone=True to handle UTC awareness cleanly
+    created_at = Column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(timezone.utc)
+    )
+    last_backup_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", back_populates="guardians")
