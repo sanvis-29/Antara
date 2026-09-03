@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CaseRecord",
+  "type": "object",
+  "required": ["case_id", "user_id", "readiness_score", "tags"],
+  "properties": {
+    "case_id": { "type": "string", "pattern": "^CASE[A-Z0-9]+$" },
+    "user_id": { "type": "string", "pattern": "^USR[A-Z0-9]+$" },
+    "readiness_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["physical", "economic", "digital"] }
+    },
+    "summary": {
+      "type": ["object", "null"],
+      "properties": {
+        "incident_count": { "type": "integer" },
+        "evidence_count": { "type": "integer" },
+        "categories_present": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "generated_packs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pack_type": { "type": "string", "enum": ["dv_pack", "economic_pack", "cyber_pack"] },
+          "generated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "incident_count": { "type": "integer" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pack",
+  "type": "object",
+  "required": ["pack_type", "user_id", "generated_at", "incidents"],
+  "properties": {
+    "pack_type": { "type": "string", "enum": ["dv_pack", "economic_pack", "cyber_pack"] },
+    "user_id": { "type": "string", "pattern": "^USR[A-Z0-9]+$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "incident_count": { "type": "integer" },
+    "incidents": {
+      "type": "array",
+      "items": { "$ref": "incident.schema.json" }
+    },
+    "totals": {
+      "type": "object",
+      "description": "Only present on economic_pack",
+      "properties": {
+        "incidents_with_card_withheld": { "type": "integer" },
+        "incidents_with_money_controlled": { "type": "integer" }
+      }
+    },
+    "platforms_involved": {
+      "type": "array",
+      "description": "Only present on cyber_pack",
+      "items": { "type": "string" }
+    }
+  }
+}
