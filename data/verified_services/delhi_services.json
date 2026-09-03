@@ -1,0 +1,90 @@
+[
+  {
+    "id": "SVC0000001",
+    "name": "Delhi Police Women Helpline",
+    "category": "police",
+    "phone": "1091",
+    "area": "All Delhi",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "24x7 emergency helpline for women in distress."
+  },
+  {
+    "id": "SVC0000002",
+    "name": "National Commission for Women Helpline",
+    "category": "legal",
+    "phone": "7827170170",
+    "area": "National",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Legal guidance and complaint registration for women facing violence or harassment."
+  },
+  {
+    "id": "SVC0000003",
+    "name": "Cyber Crime Reporting Portal Helpline",
+    "category": "cyber",
+    "phone": "1930",
+    "area": "National",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "For reporting online abuse, image/video threats, and financial cyber fraud."
+  },
+  {
+    "id": "SVC0000004",
+    "name": "One Stop Centre (Sakhi) - Nirmal Chhaya Complex",
+    "category": "shelter",
+    "phone": "011-23370450",
+    "area": "Nirmal Chhaya Complex, Hari Nagar",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Integrated support: shelter, medical, legal, and police assistance under one roof."
+  },
+  {
+    "id": "SVC0000005",
+    "name": "Delhi Commission for Women Helpline",
+    "category": "counseling",
+    "phone": "181",
+    "area": "All Delhi",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "24x7 counseling and crisis intervention support."
+  },
+  {
+    "id": "SVC0000006",
+    "name": "District Legal Services Authority (DLSA)",
+    "category": "legal",
+    "phone": "011-23385421",
+    "area": "District courts, Delhi",
+    "city": "Delhi",
+    "is_24x7": false,
+    "verified": true,
+    "notes": "Free legal aid for survivors who cannot afford private counsel."
+  },
+  {
+    "id": "SVC0000007",
+    "name": "AIIMS Emergency - Medico-Legal Case Unit",
+    "category": "medical",
+    "phone": "011-26588500",
+    "area": "Ansari Nagar",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Medical examination and medico-legal documentation for assault cases."
+  },
+  {
+    "id": "SVC0000008",
+    "name": "National Financial Fraud Helpline",
+    "category": "financial",
+    "phone": "1930",
+    "area": "National",
+    "city": "Delhi",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Immediate reporting of unauthorized transactions to freeze fraudulent transfers."
+  }
+]
