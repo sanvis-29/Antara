@@ -1,0 +1,14 @@
+{
+  "case_id": "CASE001",
+  "user_id": "USR001",
+  "readiness_score": 55.0,
+  "tags": ["physical", "economic", "digital"],
+  "summary": {
+    "incident_count": 2,
+    "evidence_count": 3,
+    "categories_present": ["digital", "economic", "physical"]
+  },
+  "generated_packs": [],
+  "incident_count": 2,
+  "updated_at": "2026-08-25T10:20:00+00:00"
+}

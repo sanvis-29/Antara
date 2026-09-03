@@ -1,0 +1,35 @@
+[
+  {
+    "incident_id": "INC001",
+    "user_id": "USR001",
+    "description": "Husband hit me, took my debit card and threatened me.",
+    "date": "2026-08-18",
+    "time": "21:30",
+    "location": "home",
+    "people_involved": [{ "role": "husband", "name": null }],
+    "categories": { "physical": true, "economic": true, "digital": false },
+    "evidence": [
+      { "evidence_id": "E001", "type": "image" },
+      { "evidence_id": "E002", "type": "bank_sms" }
+    ],
+    "economic_details": { "money_controlled": true, "card_withheld": true, "amount": null },
+    "digital_details": { "platform": null, "private_content_threat": false },
+    "ai_classification": { "tags": ["physical", "economic"], "confidence": 0.8, "method": "rule_based_fallback" },
+    "created_at": "2026-08-18T21:45:00+00:00"
+  },
+  {
+    "incident_id": "INC002",
+    "user_id": "USR001",
+    "description": "He threatened to post our private video on WhatsApp groups if I told anyone.",
+    "date": "2026-08-25",
+    "time": "10:15",
+    "location": "phone call",
+    "people_involved": [{ "role": "husband", "name": null }],
+    "categories": { "physical": false, "economic": false, "digital": true },
+    "evidence": [{ "evidence_id": "E003", "type": "chat_screenshot" }],
+    "economic_details": { "money_controlled": null, "card_withheld": null, "amount": null },
+    "digital_details": { "platform": "WhatsApp", "private_content_threat": true },
+    "ai_classification": { "tags": ["digital"], "confidence": 0.75, "method": "rule_based_fallback" },
+    "created_at": "2026-08-25T10:20:00+00:00"
+  }
+]

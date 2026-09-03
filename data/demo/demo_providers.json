@@ -1,0 +1,35 @@
+[
+  {
+    "id": "SVC_DEMO01",
+    "name": "Demo Police Helpline",
+    "category": "police",
+    "phone": "100",
+    "area": "Demo District",
+    "city": "Demo City",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Fixture data for local demo/testing only."
+  },
+  {
+    "id": "SVC_DEMO02",
+    "name": "Demo Legal Aid Clinic",
+    "category": "legal",
+    "phone": "555-0100",
+    "area": "Demo District",
+    "city": "Demo City",
+    "is_24x7": false,
+    "verified": true,
+    "notes": "Fixture data for local demo/testing only."
+  },
+  {
+    "id": "SVC_DEMO03",
+    "name": "Demo Cyber Crime Cell",
+    "category": "cyber",
+    "phone": "555-0199",
+    "area": "Demo District",
+    "city": "Demo City",
+    "is_24x7": true,
+    "verified": true,
+    "notes": "Fixture data for local demo/testing only."
+  }
+]
