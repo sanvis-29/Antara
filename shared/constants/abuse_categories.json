@@ -1,0 +1,22 @@
+{
+  "categories": [
+    {
+      "key": "physical",
+      "label": "Physical",
+      "description": "Physical assault, threats of violence, restraint, or injury.",
+      "color": "#E53935"
+    },
+    {
+      "key": "economic",
+      "label": "Economic",
+      "description": "Controlling money, withholding cards/documents, denying financial independence.",
+      "color": "#FB8C00"
+    },
+    {
+      "key": "digital",
+      "label": "Digital",
+      "description": "Threats over messaging platforms, non-consensual image/video threats, surveillance, doxxing.",
+      "color": "#8E24AA"
+    }
+  ]
+}

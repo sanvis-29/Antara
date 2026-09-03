@@ -1,0 +1,11 @@
+{
+  "evidence_types": [
+    { "key": "image", "label": "Photo", "accept": "image/*" },
+    { "key": "video", "label": "Video", "accept": "video/*" },
+    { "key": "audio", "label": "Audio recording", "accept": "audio/*" },
+    { "key": "bank_sms", "label": "Bank SMS / transaction alert", "accept": "image/*,.pdf,.txt" },
+    { "key": "chat_screenshot", "label": "Chat screenshot", "accept": "image/*" },
+    { "key": "document", "label": "Document", "accept": ".pdf,.doc,.docx,.txt" },
+    { "key": "other", "label": "Other", "accept": "*/*" }
+  ]
+}
