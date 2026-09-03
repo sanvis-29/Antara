@@ -1,78 +1,82 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from typing import Optional
+from pydantic import BaseModel, Field, field_validator
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.incident import Incident
-from app.schemas.incident import IncidentCreate, IncidentOut
-from app.services.encryption_service import encrypt_text, decrypt_text
-
-router = APIRouter(prefix="/api/incidents", tags=["incidents"])
+from app.utils.helpers import is_valid_date_str, is_valid_time_str
 
 
-def _incident_to_out(incident: Incident) -> IncidentOut:
-    description = decrypt_text(incident.description_encrypted)
-    return IncidentOut(**incident.to_contract_dict(description))
+class PersonInvolved(BaseModel):
+    role: str
+    name: Optional[str] = None
 
 
-@router.post("", response_model=IncidentOut, status_code=status.HTTP_201_CREATED)
-def create_incident(
-    payload: IncidentCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    econ = payload.economic_details
-    digital = payload.digital_details
-
-    incident = Incident(
-        user_id=current_user.id,
-        description_encrypted=encrypt_text(payload.description),
-        date=payload.date,
-        time=payload.time,
-        location=payload.location,
-        people_involved=[p.model_dump() for p in payload.people_involved],
-        category_physical=payload.categories.physical,
-        category_economic=payload.categories.economic,
-        category_digital=payload.categories.digital,
-        economic_money_controlled=econ.money_controlled if econ else None,
-        economic_card_withheld=econ.card_withheld if econ else None,
-        economic_amount=econ.amount if econ else None,
-        digital_platform=digital.platform if digital else None,
-        digital_private_content_threat=digital.private_content_threat if digital else None,
-    )
-    db.add(incident)
-    db.commit()
-    db.refresh(incident)
-
-    return _incident_to_out(incident)
+class Categories(BaseModel):
+    physical: bool = False
+    economic: bool = False
+    digital: bool = False
 
 
-@router.get("", response_model=list[IncidentOut])
-def list_incidents(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    incidents = (
-        db.query(Incident)
-        .filter(Incident.user_id == current_user.id)
-        .order_by(Incident.created_at.desc())
-        .all()
-    )
-    return [_incident_to_out(i) for i in incidents]
+class EconomicDetails(BaseModel):
+    money_controlled: Optional[bool] = None
+    card_withheld: Optional[bool] = None
+    amount: Optional[str] = None
 
 
-@router.get("/{incident_id}", response_model=IncidentOut)
-def get_incident(
-    incident_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    incident = (
-        db.query(Incident)
-        .filter(Incident.incident_id == incident_id, Incident.user_id == current_user.id)
-        .first()
-    )
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
+class DigitalDetails(BaseModel):
+    platform: Optional[str] = None
+    private_content_threat: Optional[bool] = None
 
-    return _incident_to_out(incident)
+
+class EvidenceRef(BaseModel):
+    evidence_id: str
+    type: str
+
+
+class IncidentCreate(BaseModel):
+    """
+    Exactly matches the payload Person 1 sends per shared/api-contract.md.
+    user_id is intentionally NOT required here -- it's derived from the
+    authenticated session so one user can never create incidents for another.
+    """
+    description: str = Field(..., min_length=1)
+    date: str
+    time: Optional[str] = None
+    location: Optional[str] = None
+    people_involved: list[PersonInvolved] = Field(default_factory=list)
+    categories: Categories = Field(default_factory=Categories)
+    economic_details: Optional[EconomicDetails] = None
+    digital_details: Optional[DigitalDetails] = None
+
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        if not is_valid_date_str(v):
+            raise ValueError("date must be in YYYY-MM-DD format")
+        return v
+
+    @field_validator("time")
+    @classmethod
+    def validate_time(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not is_valid_time_str(v):
+            raise ValueError("time must be in HH:MM format")
+        return v
+
+
+class IncidentOut(BaseModel):
+    incident_id: str
+    user_id: str
+    description: str
+    date: str
+    time: Optional[str] = None
+    location: Optional[str] = None
+    people_involved: list[dict] = Field(default_factory=list)
+    categories: Categories
+    evidence: list[EvidenceRef] = Field(default_factory=list)
+    economic_details: EconomicDetails
+    digital_details: DigitalDetails
+    ai_classification: Optional[dict] = None
+    created_at: Optional[str] = None
+
+
+class IncidentStructureRequest(BaseModel):
+    """Used by POST /api/case/structure to (re)run AI classification on an incident."""
+    incident_id: str
