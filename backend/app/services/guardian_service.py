@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.guardian import Guardian
-from app.models.incident import Incident
+from backend.app.routes.incident import Incident
 from app.services.encryption_service import encrypt_text, decrypt_text
 from app.utils.security import hash_password, verify_password
 
