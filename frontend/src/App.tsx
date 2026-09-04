@@ -7,6 +7,7 @@ import AntaraDashboard from "./components/AntaraDashboard";
 import PreserveCase from "./components/PreserveCase";
 import PrepareCase from "./components/PrepareCase";
 import NavigateSupport from "./components/NavigateSupport";
+import HandoffCase from "./components/HandoffCase";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
@@ -269,26 +270,14 @@ function App() {
         />
       )}
 
-      {screen === "handoff" && (
-        <div className="antara-placeholder">
-          <div>
-            <p className="dashboard-kicker">
-              06 — HANDOFF
-            </p>
-
-            <h1>You decide what leaves ANTARA.</h1>
-
-            <button
-              onClick={() => setScreen("navigate")}
-            >
-              ← Back
-            </button>
-
-            <button onClick={quickExit}>
-              Quick Exit
-            </button>
-          </div>
-        </div>
+      {screen === "handoff" && caseRecord && (
+        <HandoffCase
+          key="handoff"
+          availableTags={caseRecord.tags ?? []}
+          onBack={() => setScreen("navigate")}
+          onQuickExit={quickExit}
+          onFinish={() => setScreen("dashboard")}
+        />
       )}
     </AnimatePresence>
   );
