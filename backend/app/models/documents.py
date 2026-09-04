@@ -25,7 +25,7 @@ class Document(Base):
     __tablename__ = "essential_documents"
 
     document_id = Column(String, primary_key=True, default=lambda: f"DOC{uuid.uuid4().hex[:8].upper()}")
-    user_id = Column(String, ForeignKey("users.user_id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
 
     document_type = Column(Enum(DocumentType), nullable=False)
     label = Column(String, nullable=False)

@@ -16,7 +16,7 @@ Base = declarative_base()
 def init_db() -> None:
     """Create all tables. Called once on app startup."""
     # Import models here so they register with Base.metadata before create_all.
-    from app.models import user, incident, evidence, guardian, case_record, support_provider  # noqa: F401
+    from app.models import user, incident, evidence, guardian, case_record, support_provider, documents  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 
