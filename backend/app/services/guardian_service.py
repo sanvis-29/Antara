@@ -66,20 +66,39 @@ def create_backup(db: Session, user_id: str, guardian_name: str, guardian_contac
     return guardian, recovery_code
 
 
-def recover_backup(db: Session, user_id: str, guardian_id: str, recovery_code: str) -> dict:
-    """Validates the recovery code for a specific user and returns the decrypted snapshot."""
+def recover_backup(
+    db: Session,
+    guardian_id: str,
+    recovery_code: str
+) -> dict:
+    """
+    Recover a Guardian backup without requiring access to the
+    original account/device.
+
+    Access is protected by the Guardian ID + recovery code pair.
+    """
+
     guardian = (
         db.query(Guardian)
-        .filter(Guardian.guardian_id == guardian_id, Guardian.user_id == user_id)
+        .filter(Guardian.guardian_id == guardian_id)
         .first()
     )
-    
+
     if not guardian or not guardian.backup_blob_encrypted:
         raise ValueError("No backup found for this Guardian.")
 
-    if not guardian.recovery_code_hash or not verify_password(recovery_code, guardian.recovery_code_hash):
+    if (
+        not guardian.recovery_code_hash
+        or not verify_password(
+            recovery_code,
+            guardian.recovery_code_hash
+        )
+    ):
         raise ValueError("Invalid recovery code.")
 
-    plain_json = decrypt_text(guardian.backup_blob_encrypted)
+    plain_json = decrypt_text(
+        guardian.backup_blob_encrypted
+    )
+
     return json.loads(plain_json)
 
