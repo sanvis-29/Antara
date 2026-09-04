@@ -6,6 +6,7 @@ import SecretUnlock from "./components/SecretUnlock";
 import AntaraDashboard from "./components/AntaraDashboard";
 import PreserveCase from "./components/PreserveCase";
 import PrepareCase from "./components/PrepareCase";
+import NavigateSupport from "./components/NavigateSupport";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
@@ -32,7 +33,8 @@ type Screen =
   | "structure"
   | "preserve"
   | "prepare"
-  | "navigate";
+  | "navigate"
+  | "handoff";
 
 function App() {
   const [screen, setScreen] =
@@ -257,26 +259,29 @@ function App() {
         />
       )}
 
-      {screen === "navigate" && (
-        <div
-          className="antara-placeholder"
+      {screen === "navigate" && caseRecord && (
+        <NavigateSupport
           key="navigate"
-        >
+          caseTags={caseRecord.tags ?? []}
+          onBack={() => setScreen("prepare")}
+          onQuickExit={quickExit}
+          onContinue={() => setScreen("handoff")}
+        />
+      )}
+
+      {screen === "handoff" && (
+        <div className="antara-placeholder">
           <div>
             <p className="dashboard-kicker">
-              05 — NAVIGATE
+              06 — HANDOFF
             </p>
 
-            <h1>Find the right support pathway.</h1>
-
-            <p>
-              Your Case Record is ready to guide the next step.
-            </p>
+            <h1>You decide what leaves ANTARA.</h1>
 
             <button
-              onClick={() => setScreen("prepare")}
+              onClick={() => setScreen("navigate")}
             >
-              Back
+              ← Back
             </button>
 
             <button onClick={quickExit}>
