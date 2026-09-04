@@ -7,11 +7,19 @@ import AntaraDashboard from "./components/AntaraDashboard";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
+import StructureCase from "./components/StructureCase";
 
 import {
   createIncident,
   type CreatedIncident,
 } from "./services/incidentApi";
+
+import {
+  structureIncident,
+  getCaseRecord,
+  type StructuredIncident,
+  type CaseRecord,
+} from "./services/caseApi";
 
 import "./App.css";
 
@@ -20,10 +28,12 @@ type Screen =
   | "unlock"
   | "dashboard"
   | "record"
-  | "structure";
+  | "structure"
+  | "preserve";
 
 function App() {
-  const [screen, setScreen] = useState<Screen>("game");
+  const [screen, setScreen] =
+    useState<Screen>("game");
 
   const [incidentDraft, setIncidentDraft] =
     useState<IncidentFormData | null>(null);
@@ -31,7 +41,14 @@ function App() {
   const [savedIncident, setSavedIncident] =
     useState<CreatedIncident | null>(null);
 
-  const [recordSaving, setRecordSaving] = useState(false);
+  const [structuredIncident, setStructuredIncident] =
+    useState<StructuredIncident | null>(null);
+
+  const [caseRecord, setCaseRecord] =
+    useState<CaseRecord | null>(null);
+
+  const [recordSaving, setRecordSaving] =
+    useState(false);
 
   const [recordError, setRecordError] =
     useState<string | null>(null);
@@ -48,17 +65,71 @@ function App() {
     setRecordError(null);
 
     try {
+      /*
+       * STEP 1
+       * Preserve the incident.
+       */
       const incident = await createIncident(data);
 
       setSavedIncident(incident);
+
+      const incidentId =
+        incident.incident_id ??
+        (typeof incident.id === "string"
+          ? incident.id
+          : undefined);
+
+      if (!incidentId) {
+        throw new Error(
+          "The saved incident did not return an incident ID."
+        );
+      }
+
+      /*
+       * STEP 2
+       * Structure it.
+       */
+      const structured =
+        await structureIncident(incidentId);
+
+      setStructuredIncident(structured);
+
+      /*
+       * STEP 3
+       * Fetch the updated Case Record.
+       */
+      const userId =
+        structured.user_id ??
+        (typeof incident.user_id === "string"
+          ? incident.user_id
+          : undefined);
+
+      if (!userId) {
+        throw new Error(
+          "ANTARA couldn't identify the current case record."
+        );
+      }
+
+      const currentCase =
+        await getCaseRecord(userId);
+
+      setCaseRecord(currentCase);
+
+      /*
+       * Only enter 02 after all real backend
+       * operations have succeeded.
+       */
       setScreen("structure");
     } catch (error) {
-      console.error("Could not create incident:", error);
+      console.error(
+        "Could not preserve or structure incident:",
+        error
+      );
 
       setRecordError(
         error instanceof Error
           ? error.message
-          : "ANTARA couldn't save this record right now."
+          : "ANTARA couldn't organise this record right now."
       );
     } finally {
       setRecordSaving(false);
@@ -70,15 +141,21 @@ function App() {
       {screen === "game" && (
         <PetalPop
           key="game"
-          onSecretUnlock={() => setScreen("unlock")}
+          onSecretUnlock={() =>
+            setScreen("unlock")
+          }
         />
       )}
 
       {screen === "unlock" && (
         <SecretUnlock
           key="unlock"
-          onUnlock={() => setScreen("dashboard")}
-          onCancel={() => setScreen("game")}
+          onUnlock={() =>
+            setScreen("dashboard")
+          }
+          onCancel={() =>
+            setScreen("game")
+          }
         />
       )}
 
@@ -96,7 +173,9 @@ function App() {
       {screen === "record" && (
         <div key="record">
           <RecordIncident
-            onBack={() => setScreen("dashboard")}
+            onBack={() =>
+              setScreen("dashboard")
+            }
             onQuickExit={quickExit}
             onContinue={handleIncident}
           />
@@ -104,13 +183,17 @@ function App() {
           {recordSaving && (
             <div className="record-status-overlay">
               <div className="record-status-card">
-                <span className="record-status-mark">◇</span>
+                <span className="record-status-mark">
+                  ◇
+                </span>
 
-                <strong>Preserving your record...</strong>
+                <strong>
+                  Organising your record...
+                </strong>
 
                 <p>
-                  ANTARA is securely adding this experience
-                  to your case.
+                  ANTARA is preserving this experience
+                  and updating your Case Record.
                 </p>
               </div>
             </div>
@@ -119,13 +202,18 @@ function App() {
           {recordError && (
             <div className="record-error-toast">
               <div>
-                <strong>We couldn't save this yet.</strong>
+                <strong>
+                  We couldn't organise this yet.
+                </strong>
+
                 <span>{recordError}</span>
               </div>
 
               <button
                 type="button"
-                onClick={() => setRecordError(null)}
+                onClick={() =>
+                  setRecordError(null)
+                }
               >
                 ×
               </button>
@@ -134,30 +222,44 @@ function App() {
         </div>
       )}
 
-      {screen === "structure" && (
+      {screen === "structure" &&
+        structuredIncident &&
+        caseRecord && (
+          <StructureCase
+            key="structure"
+            incident={structuredIncident}
+            caseRecord={caseRecord}
+            onBack={() =>
+              setScreen("record")
+            }
+            onQuickExit={quickExit}
+            onContinue={() =>
+              setScreen("preserve")
+            }
+          />
+        )}
+
+      {screen === "preserve" && (
         <div
           className="antara-placeholder"
-          key="structure"
+          key="preserve"
         >
           <div>
             <p className="dashboard-kicker">
-              02 — STRUCTURE
+              03 — PRESERVE
             </p>
 
-            <h1>Record preserved.</h1>
+            <h1>Protect it beyond one device.</h1>
 
             <p>
-              {savedIncident?.description ??
-                incidentDraft?.description}
-            </p>
-
-            <p>
-              ANTARA can now organise this experience into
-              your Case Record.
+              Your Case Record is ready for the
+              Guardian Vault.
             </p>
 
             <button
-              onClick={() => setScreen("record")}
+              onClick={() =>
+                setScreen("structure")
+              }
             >
               Back
             </button>
