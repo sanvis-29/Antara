@@ -19,22 +19,20 @@ router = APIRouter(prefix="/api/documents", tags=["documents"])
 
 @router.post("", response_model=DocumentCreateResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    user_id: str = Form(...),
     document_type: DocumentType = Form(...),
     label: str = Form(...),
     file: UploadFile = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    if current_user.user_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot upload documents for another user")
-
     file_bytes = await file.read()
     sha256_hash = hashlib.sha256(file_bytes).hexdigest()
-    storage_key = encrypt_and_store(user_id=user_id, filename=file.filename, data=file_bytes)
+    storage_key = encrypt_and_store(
+        user_id=current_user.user_id, filename=file.filename, data=file_bytes
+    )
 
     doc = Document(
-        user_id=user_id,
+        user_id=current_user.user_id,
         document_type=document_type,
         label=label,
         original_filename=file.filename,
@@ -49,16 +47,12 @@ async def upload_document(
 
 @router.get("", response_model=DocumentListResponse)
 def list_documents(
-    user_id: str,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    if current_user.user_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot view another user's documents")
-
-    docs = db.query(Document).filter(Document.user_id == user_id).all()
+    docs = db.query(Document).filter(Document.user_id == current_user.user_id).all()
     return DocumentListResponse(
-        user_id=user_id,
+        user_id=current_user.user_id,
         documents=[DocumentMetadata.model_validate(d) for d in docs],
     )
 

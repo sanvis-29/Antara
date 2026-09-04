@@ -48,7 +48,9 @@ Body (matches the frozen incident structure below, minus `incident_id`,
   "people_involved": [{ "role": "husband", "name": "optional" }],
   "categories": { "physical": true, "economic": true, "digital": true },
   "economic_details": { "money_controlled": true, "card_withheld":
-  ## Essential Documents
+ 
+ 
+ ## Essential Documents
 
 Separate from case evidence — linked to the survivor/vault, not an incident.
 
