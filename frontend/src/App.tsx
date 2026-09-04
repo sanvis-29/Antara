@@ -3,15 +3,25 @@ import { AnimatePresence } from "framer-motion";
 import PetalPop from "./components/PetalPop";
 import SecretUnlock from "./components/SecretUnlock";
 import AntaraDashboard from "./components/AntaraDashboard";
+import RecordIncident, {
+  type IncidentFormData,
+} from "./components/RecordIncident";
 import "./App.css";
 
-type Screen = "game" | "unlock" | "dashboard" | "record";
+type Screen = "game" | "unlock" | "dashboard" | "record" | "structure";
 
 function App() {
   const [screen, setScreen] = useState<Screen>("game");
+  const [incidentDraft, setIncidentDraft] =
+    useState<IncidentFormData | null>(null);
 
   const quickExit = () => {
     setScreen("game");
+  };
+
+  const handleIncident = (data: IncidentFormData) => {
+    setIncidentDraft(data);
+    setScreen("structure");
   };
 
   return (
@@ -40,17 +50,26 @@ function App() {
       )}
 
       {screen === "record" && (
-        <div className="antara-placeholder" key="record">
-          <h1>Record</h1>
-          <p>Incident recording comes next.</p>
+        <RecordIncident
+          key="record"
+          onBack={() => setScreen("dashboard")}
+          onQuickExit={quickExit}
+          onContinue={handleIncident}
+        />
+      )}
 
-          <button onClick={() => setScreen("dashboard")}>
-            Back
-          </button>
+      {screen === "structure" && (
+        <div className="antara-placeholder" key="structure">
+          <div>
+            <p className="dashboard-kicker">RECORD SAVED LOCALLY</p>
+            <h1>Ready to structure.</h1>
 
-          <button onClick={quickExit}>
-            Quick Exit
-          </button>
+            <p>{incidentDraft?.description}</p>
+
+            <button onClick={() => setScreen("record")}>Back</button>
+
+            <button onClick={quickExit}>Quick Exit</button>
+          </div>
         </div>
       )}
     </AnimatePresence>

@@ -488,3 +488,289 @@ input {
     display: none;
   }
 }
+
+/* RECORD INCIDENT */
+
+.record-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(180, 82, 112, 0.18), transparent 26%),
+    linear-gradient(145deg, #310611, #590d25);
+  color: #f7ebe5;
+  padding: 32px clamp(24px, 6vw, 90px) 70px;
+}
+
+.record-layout {
+  max-width: 1200px;
+  margin: 60px auto 0;
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: clamp(50px, 8vw, 110px);
+  align-items: start;
+}
+
+.record-intro {
+  position: sticky;
+  top: 35px;
+}
+
+.back-link {
+  border: 0;
+  background: transparent;
+  color: #caaab1;
+  padding: 0;
+  margin-bottom: 52px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.record-intro h1 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(48px, 6vw, 72px);
+  line-height: 0.98;
+}
+
+.record-intro h1 em {
+  color: #e4acba;
+}
+
+.record-intro > p:not(.dashboard-kicker) {
+  color: #cfb7bb;
+  line-height: 1.7;
+  max-width: 400px;
+}
+
+.record-privacy {
+  margin-top: 40px;
+  padding: 18px;
+  display: flex;
+  gap: 13px;
+  border: 1px solid rgba(255, 235, 225, 0.12);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.035);
+}
+
+.record-privacy p {
+  margin: 0;
+  color: #bea2a8;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.record-form {
+  background: #f5ebe4;
+  color: #4d1728;
+  border-radius: 28px;
+  padding: clamp(25px, 4vw, 46px);
+  box-shadow: 0 30px 80px rgba(20, 0, 7, 0.22);
+}
+
+.form-section {
+  padding: 30px 0;
+  border-bottom: 1px solid #dfcec8;
+}
+
+.form-section:first-child {
+  padding-top: 0;
+}
+
+.form-step {
+  display: block;
+  margin-bottom: 18px;
+  color: #a26c7b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.record-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #6a3a47;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.record-form input,
+.record-form textarea {
+  width: 100%;
+  border: 1px solid #d9c5bf;
+  border-radius: 13px;
+  background: rgba(255,255,255,0.58);
+  color: #471426;
+  padding: 13px 14px;
+  outline: none;
+  resize: vertical;
+}
+
+.record-form textarea {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.record-form input:focus,
+.record-form textarea:focus {
+  border-color: #9c6174;
+  box-shadow: 0 0 0 3px rgba(127, 52, 77, 0.08);
+}
+
+.field-label {
+  margin-bottom: 0;
+}
+
+.field-help,
+.section-copy {
+  margin: 9px 0 0;
+  color: #9b7b83;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+  margin-bottom: 14px;
+}
+
+.experience-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.experience-card {
+  width: 100%;
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px;
+  border: 1px solid #dac7c1;
+  border-radius: 15px;
+  background: rgba(255,255,255,0.45);
+  color: #552033;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.experience-card:hover {
+  border-color: #b47c8d;
+  transform: translateY(-1px);
+}
+
+.experience-card.selected {
+  border-color: #8b415a;
+  background: #ead6d8;
+}
+
+.experience-check {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #ad8791;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+}
+
+.experience-card.selected .experience-check {
+  background: #6d2039;
+  border-color: #6d2039;
+  color: white;
+}
+
+.experience-card strong {
+  font-size: 12px;
+}
+
+.experience-card p {
+  margin: 5px 0 0;
+  color: #90717a;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.contextual-section {
+  background: rgba(112, 37, 61, 0.035);
+  margin: 0 -15px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.record-actions {
+  padding-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.record-actions div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.record-actions strong {
+  font-family: "Playfair Display", serif;
+  font-size: 15px;
+}
+
+.record-actions span {
+  color: #997982;
+  font-size: 10px;
+}
+
+.record-continue {
+  border: 0;
+  border-radius: 999px;
+  padding: 13px 20px;
+  background: #641d36;
+  color: white;
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.record-continue:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 850px) {
+  .record-layout {
+    grid-template-columns: 1fr;
+    margin-top: 40px;
+  }
+
+  .record-intro {
+    position: static;
+  }
+
+  .back-link {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 560px) {
+  .record-page {
+    padding: 22px 18px 50px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .record-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .record-continue {
+    width: 100%;
+  }
+}
