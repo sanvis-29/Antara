@@ -7,7 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import init_db, SessionLocal
 from app.models.support_provider import SupportProvider
-from app.routes import auth, incident, evidence, case, guardian, packs, support
+from app.routes import (
+    auth,
+    incident,
+    evidence,
+    case,
+    guardian,
+    packs,
+    support,
+    documents,
+)
 
 settings = get_settings()
 
@@ -40,6 +49,7 @@ app.include_router(case.router)
 app.include_router(guardian.router)
 app.include_router(packs.router)
 app.include_router(support.router)
+app.include_router(documents.router)
 
 
 def _seed_support_providers() -> None:

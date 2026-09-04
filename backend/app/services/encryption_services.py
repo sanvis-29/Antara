@@ -42,3 +42,18 @@ def decrypt_text(cipher_text: str | None) -> str | None:
             "Unable to decrypt data: invalid or missing encryption key."
         ) from exc
 
+
+def encrypt_bytes(data: bytes) -> bytes:
+    """Encrypt raw file bytes using the configured Fernet key."""
+    return _fernet.encrypt(data)
+
+
+def decrypt_bytes(cipher_data: bytes) -> bytes:
+    """Decrypt encrypted file bytes using the configured Fernet key."""
+    try:
+        return _fernet.decrypt(cipher_data)
+    except InvalidToken as exc:
+        raise ValueError(
+            "Unable to decrypt file: invalid or missing encryption key."
+        ) from exc
+
