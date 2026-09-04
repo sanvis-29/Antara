@@ -5,6 +5,7 @@ import {
   createGuardianBackup,
   type GuardianBackupResponse,
 } from "../services/guardianApi";
+import DocumentVault from "./DocumentVault";
 
 interface Props {
   incidentCount: number;
@@ -391,6 +392,8 @@ export default function PreserveCase({
               </motion.div>
             )}
           </AnimatePresence>
+
+          <DocumentVault />
         </section>
       </div>
     </motion.main>
