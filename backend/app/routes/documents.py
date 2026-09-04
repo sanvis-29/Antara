@@ -1,17 +1,10 @@
-import hashlib
-
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, status
-from sqlalchemy.orm import Session
-
-from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.document import Document, DocumentType
-from app.schemas.document import (
+from app.models.documents import Document, DocumentType
+from app.schemas.documents import (
     DocumentCreateResponse,
     DocumentListResponse,
     DocumentMetadata,
 )
-from app.services.encryption_service import encrypt_and_store
+from app.services.encryption_services import encrypt_and_store
 from app.services.storage_service import delete_blob
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
