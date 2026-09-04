@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import PetalPop from "./components/PetalPop";
 import SecretUnlock from "./components/SecretUnlock";
 import AntaraDashboard from "./components/AntaraDashboard";
+import PreserveCase from "./components/PreserveCase";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
@@ -11,7 +12,6 @@ import StructureCase from "./components/StructureCase";
 
 import {
   createIncident,
-  type CreatedIncident,
 } from "./services/incidentApi";
 
 import {
@@ -35,12 +35,6 @@ function App() {
   const [screen, setScreen] =
     useState<Screen>("game");
 
-  const [incidentDraft, setIncidentDraft] =
-    useState<IncidentFormData | null>(null);
-
-  const [savedIncident, setSavedIncident] =
-    useState<CreatedIncident | null>(null);
-
   const [structuredIncident, setStructuredIncident] =
     useState<StructuredIncident | null>(null);
 
@@ -60,7 +54,6 @@ function App() {
   const handleIncident = async (
     data: IncidentFormData
   ) => {
-    setIncidentDraft(data);
     setRecordSaving(true);
     setRecordError(null);
 
@@ -70,8 +63,6 @@ function App() {
        * Preserve the incident.
        */
       const incident = await createIncident(data);
-
-      setSavedIncident(incident);
 
       const incidentId =
         incident.incident_id ??
@@ -239,36 +230,20 @@ function App() {
           />
         )}
 
-      {screen === "preserve" && (
-        <div
-          className="antara-placeholder"
+      {screen === "preserve" && caseRecord && (
+        <PreserveCase
           key="preserve"
-        >
-          <div>
-            <p className="dashboard-kicker">
-              03 — PRESERVE
-            </p>
-
-            <h1>Protect it beyond one device.</h1>
-
-            <p>
-              Your Case Record is ready for the
-              Guardian Vault.
-            </p>
-
-            <button
-              onClick={() =>
-                setScreen("structure")
-              }
-            >
-              Back
-            </button>
-
-            <button onClick={quickExit}>
-              Quick Exit
-            </button>
-          </div>
-        </div>
+          incidentCount={
+            caseRecord.summary?.incident_count ??
+            caseRecord.incident_count ??
+            0
+          }
+          onBack={() => setScreen("structure")}
+          onQuickExit={quickExit}
+          onContinue={() => {
+            console.log("Ready for 04 — Prepare");
+          }}
+        />
       )}
     </AnimatePresence>
   );
