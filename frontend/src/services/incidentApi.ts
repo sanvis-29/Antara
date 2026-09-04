@@ -2,27 +2,43 @@ import { apiRequest } from "./api";
 import type { IncidentFormData } from "../components/RecordIncident";
 
 export interface CreatedIncident {
-  id?: string;
-  incident_id?: string;
-  user_id?: string;
+  incident_id: string;
+  user_id: string;
   description: string;
   date: string;
   time?: string | null;
   location?: string | null;
+
   people_involved?: Array<{
     role: string;
     name?: string | null;
   }>;
+
   categories?: {
     physical: boolean;
     economic: boolean;
     digital: boolean;
   };
+
+  economic_details?: {
+    money_controlled?: boolean | null;
+    card_withheld?: boolean | null;
+    amount?: string | null;
+  };
+
+  digital_details?: {
+    platform?: string | null;
+    private_content_threat?: boolean | null;
+  };
+
   ai_classification?: unknown;
+
   [key: string]: unknown;
 }
 
-export function buildIncidentPayload(form: IncidentFormData) {
+export function buildIncidentPayload(
+  form: IncidentFormData
+) {
   const physical =
     form.physical ||
     form.restrained ||
@@ -56,7 +72,8 @@ export function buildIncidentPayload(form: IncidentFormData) {
       ? [
           {
             role: form.personRole.trim(),
-            name: form.personName.trim() || null,
+            name:
+              form.personName.trim() || null,
           },
         ]
       : [],
@@ -76,15 +93,17 @@ export function buildIncidentPayload(form: IncidentFormData) {
 
       card_withheld: form.cardWithheld,
 
-      amount: form.amount.trim()
-        ? Number(form.amount)
-        : null,
+      // Backend expects Optional[str], NOT number
+      amount:
+        form.amount.trim() || null,
     },
 
     digital_details: {
-      platform: form.platform.trim() || null,
+      platform:
+        form.platform.trim() || null,
 
-      private_content_threat: form.digitalThreat,
+      private_content_threat:
+        form.digitalThreat,
     },
   };
 }
@@ -92,8 +111,13 @@ export function buildIncidentPayload(form: IncidentFormData) {
 export async function createIncident(
   form: IncidentFormData
 ): Promise<CreatedIncident> {
-  return apiRequest<CreatedIncident>("/api/incidents", {
-    method: "POST",
-    body: JSON.stringify(buildIncidentPayload(form)),
-  });
+  return apiRequest<CreatedIncident>(
+    "/api/incidents",
+    {
+      method: "POST",
+      body: JSON.stringify(
+        buildIncidentPayload(form)
+      ),
+    }
+  );
 }

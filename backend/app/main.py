@@ -11,16 +11,28 @@ from app.routes import auth, incident, evidence, case, guardian, packs, support
 
 settings = get_settings()
 
-app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+)
 
+# ---------------------------------------------------------
+# CORS
+# ---------------------------------------------------------
+# Allow the local Vite frontend during development.
+# This supports both localhost and 127.0.0.1 on any port.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
+    allow_origins=[],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ---------------------------------------------------------
+# ROUTES
+# ---------------------------------------------------------
 app.include_router(auth.router)
 app.include_router(incident.router)
 app.include_router(evidence.router)
@@ -31,16 +43,28 @@ app.include_router(support.router)
 
 
 def _seed_support_providers() -> None:
-    """Loads verified services from data/verified_services/delhi_services.json
-    into the DB on first startup, if the table is empty."""
+    """
+    Load verified support services from
+    data/verified_services/delhi_services.json
+    into the database on first startup.
+    """
+
     seed_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "data", "verified_services", "delhi_services.json"
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "data",
+        "verified_services",
+        "delhi_services.json",
     )
+
     seed_path = os.path.abspath(seed_path)
+
     if not os.path.exists(seed_path):
         return
 
     db = SessionLocal()
+
     try:
         if db.query(SupportProvider).count() > 0:
             return
@@ -48,9 +72,11 @@ def _seed_support_providers() -> None:
         with open(seed_path, "r", encoding="utf-8") as f:
             providers = json.load(f)
 
-        for p in providers:
-            db.add(SupportProvider(**p))
+        for provider in providers:
+            db.add(SupportProvider(**provider))
+
         db.commit()
+
     finally:
         db.close()
 
@@ -63,10 +89,13 @@ def on_startup():
 
 @app.get("/")
 def root():
-    return {"status": "ok", "service": settings.APP_NAME, "version": settings.APP_VERSION}
+    return {
+        "status": "ok",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+    }
 
 
 @app.get("/health")
 def health():
     return {"status": "healthy"}
-
