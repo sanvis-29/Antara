@@ -8,7 +8,7 @@ from app.models.user import User
 from app.models.incident import Incident
 from app.models.support_provider import SupportProvider
 from app.schemas.support import SupportProviderOut, HandoffGenerateRequest
-from app.services.encryption_service import decrypt_text
+from app.services.encryption_services import decrypt_text
 
 router = APIRouter(prefix="/api", tags=["support"])
 
@@ -89,3 +89,5 @@ def generate_handoff(
         "recipient_note": payload.recipient_note,
         "incidents": handoff_incidents,
     }
+
+

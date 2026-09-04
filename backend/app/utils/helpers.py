@@ -20,3 +20,5 @@ def safe_filename(filename: str) -> str:
     """Strip path separators and odd characters from an uploaded filename."""
     filename = filename.replace("\\", "/").split("/")[-1]
     return re.sub(r"[^A-Za-z0-9._-]", "_", filename)[:200]
+
+

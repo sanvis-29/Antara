@@ -19,3 +19,5 @@ class CaseRecordOut(BaseModel):
 
 class PackGenerateRequest(BaseModel):
     pack_type: str  # dv_pack | economic_pack | cyber_pack
+
+

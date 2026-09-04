@@ -4,7 +4,7 @@ from app.schemas.documents import (
     DocumentListResponse,
     DocumentMetadata,
 )
-from app.services.encryption_services import encrypt_and_store
+from app.services.encryption_servicess import encrypt_and_store
 from app.services.storage_service import delete_blob
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -79,3 +79,4 @@ def delete_document(
     delete_blob(doc.encrypted_storage_key)
     db.delete(doc)
     db.commit()
+

@@ -19,3 +19,4 @@ def init_db() -> None:
     from app.models import user, incident, evidence, guardian, case_record, support_provider  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+

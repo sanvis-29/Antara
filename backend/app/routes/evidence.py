@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
-from backend.app.routes.incident import Incident
+from app.models.incident import Incident
 from app.models.evidence import Evidence
 from app.schemas.evidence import EvidenceOut, VALID_EVIDENCE_TYPES
 from app.services.storage_service import save_file
@@ -73,3 +73,4 @@ def list_evidence_for_incident(
         raise HTTPException(status_code=404, detail="Incident not found")
 
     return [EvidenceOut.model_validate(e) for e in incident.evidence]
+

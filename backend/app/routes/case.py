@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
-from backend.app.routes.incident import Incident
+from app.models.incident import Incident
 from app.models.case_record import CaseRecord
 from app.schemas.incident import IncidentStructureRequest, IncidentOut
 from app.schemas.case_record import CaseRecordOut
-from app.services.encryption_service import decrypt_text
+from app.services.encryption_services import decrypt_text
 
 router = APIRouter(prefix="/api/case", tags=["case"])
 
@@ -117,3 +117,5 @@ def structure_incident(
 
     description = decrypt_text(incident.description_encrypted)
     return IncidentOut(**incident.to_contract_dict(description))
+
+

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models.incident import Incident
 from app.models.case_record import CaseRecord
-from app.services.encryption_service import decrypt_text
+from app.services.encryption_services import decrypt_text
 
 VALID_PACK_TYPES = {"dv_pack", "economic_pack", "cyber_pack"}
 
@@ -65,3 +65,4 @@ def generate_pack(db: Session, user_id: str, pack_type: str) -> dict:
         db.commit()
 
     return pack
+

@@ -37,3 +37,4 @@ def get_current_user(token: str | None = Depends(oauth2_scheme), db: Session = D
         raise credentials_exception
 
     return user
+

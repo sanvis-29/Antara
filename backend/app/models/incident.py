@@ -79,3 +79,4 @@ class Incident(Base):
             "ai_classification": self.ai_classification,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+

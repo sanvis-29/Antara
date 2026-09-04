@@ -41,3 +41,4 @@ def decrypt_text(cipher_text: str | None) -> str | None:
         raise ValueError(
             "Unable to decrypt data: invalid or missing encryption key."
         ) from exc
+

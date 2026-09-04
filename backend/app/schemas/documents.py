@@ -44,3 +44,4 @@ class DocumentMetadata(BaseModel):
 class DocumentListResponse(BaseModel):
     user_id: str
     documents: list[DocumentMetadata]
+

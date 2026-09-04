@@ -80,3 +80,4 @@ class IncidentOut(BaseModel):
 class IncidentStructureRequest(BaseModel):
     """Used by POST /api/case/structure to (re)run AI classification on an incident."""
     incident_id: str
+

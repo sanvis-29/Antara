@@ -23,3 +23,4 @@ class HandoffGenerateRequest(BaseModel):
     consented_categories: list[str] = []   # subset of ["physical", "economic", "digital"]
     include_evidence: bool = True
     recipient_note: Optional[str] = None
+

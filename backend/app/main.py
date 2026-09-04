@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import init_db, SessionLocal
 from app.models.support_provider import SupportProvider
-from app.routes import auth, incidents, evidence, case, guardian, packs, support
+from app.routes import auth, incident, evidence, case, guardian, packs, support
 
 settings = get_settings()
 
@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(incidents.router)
+app.include_router(incident.router)
 app.include_router(evidence.router)
 app.include_router(case.router)
 app.include_router(guardian.router)
@@ -69,3 +69,4 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+

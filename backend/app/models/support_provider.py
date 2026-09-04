@@ -23,3 +23,4 @@ class SupportProvider(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     notes = Column(String, nullable=True)
+

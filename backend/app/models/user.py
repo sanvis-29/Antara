@@ -28,5 +28,7 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     incidents = relationship("Incident", back_populates="user", cascade="all, delete-orphan")
+    evidence = relationship("Evidence", back_populates="user", cascade="all, delete-orphan")
     guardians = relationship("Guardian", back_populates="user", cascade="all, delete-orphan")
     case_record = relationship("CaseRecord", back_populates="user", uselist=False, cascade="all, delete-orphan")
+

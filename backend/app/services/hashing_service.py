@@ -16,3 +16,4 @@ def sha256_file(path: str, chunk_size: int = 65536) -> str:
         while chunk := f.read(chunk_size):
             hasher.update(chunk)
     return hasher.hexdigest()
+

@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.guardian import Guardian
-from backend.app.routes.incident import Incident
-from app.services.encryption_service import encrypt_text, decrypt_text
+from app.models.incident import Incident
+from app.services.encryption_services import encrypt_text, decrypt_text
 from app.utils.security import hash_password, verify_password
 
 
@@ -82,3 +82,4 @@ def recover_backup(db: Session, user_id: str, guardian_id: str, recovery_code: s
 
     plain_json = decrypt_text(guardian.backup_blob_encrypted)
     return json.loads(plain_json)
+

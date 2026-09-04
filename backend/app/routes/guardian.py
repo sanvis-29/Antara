@@ -43,3 +43,4 @@ def recover(payload: GuardianRecoverRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
     return snapshot
+

@@ -35,3 +35,4 @@ def read_file(stored_path: str) -> bytes:
 def delete_file(stored_path: str) -> None:
     if stored_path and os.path.exists(stored_path):
         os.remove(stored_path)
+

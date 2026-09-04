@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
-from backend.app.routes.incident import Incident
+from app.models.incident import Incident
 from app.schemas.incident import IncidentCreate, IncidentOut
-from app.services.encryption_service import encrypt_text, decrypt_text
+from app.services.encryption_services import encrypt_text, decrypt_text
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
 
@@ -76,3 +76,5 @@ def get_incident(
         raise HTTPException(status_code=404, detail="Incident not found")
 
     return _incident_to_out(incident)
+
+

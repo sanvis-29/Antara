@@ -47,3 +47,4 @@ _DEV_FALLBACK_KEY = Fernet.generate_key()
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

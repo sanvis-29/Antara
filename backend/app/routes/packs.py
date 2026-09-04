@@ -22,3 +22,5 @@ def generate(
         )
 
     return generate_pack(db, current_user.id, payload.pack_type)
+
+
