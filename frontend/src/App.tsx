@@ -5,6 +5,7 @@ import PetalPop from "./components/PetalPop";
 import SecretUnlock from "./components/SecretUnlock";
 import AntaraDashboard from "./components/AntaraDashboard";
 import PreserveCase from "./components/PreserveCase";
+import PrepareCase from "./components/PrepareCase";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
@@ -29,7 +30,9 @@ type Screen =
   | "dashboard"
   | "record"
   | "structure"
-  | "preserve";
+  | "preserve"
+  | "prepare"
+  | "navigate";
 
 function App() {
   const [screen, setScreen] =
@@ -240,10 +243,47 @@ function App() {
           }
           onBack={() => setScreen("structure")}
           onQuickExit={quickExit}
-          onContinue={() => {
-            console.log("Ready for 04 — Prepare");
-          }}
+          onContinue={() => setScreen("prepare")}
         />
+      )}
+
+      {screen === "prepare" && caseRecord && (
+        <PrepareCase
+          key="prepare"
+          availableTags={caseRecord.tags ?? []}
+          onBack={() => setScreen("preserve")}
+          onQuickExit={quickExit}
+          onContinue={() => setScreen("navigate")}
+        />
+      )}
+
+      {screen === "navigate" && (
+        <div
+          className="antara-placeholder"
+          key="navigate"
+        >
+          <div>
+            <p className="dashboard-kicker">
+              05 — NAVIGATE
+            </p>
+
+            <h1>Find the right support pathway.</h1>
+
+            <p>
+              Your Case Record is ready to guide the next step.
+            </p>
+
+            <button
+              onClick={() => setScreen("prepare")}
+            >
+              Back
+            </button>
+
+            <button onClick={quickExit}>
+              Quick Exit
+            </button>
+          </div>
+        </div>
       )}
     </AnimatePresence>
   );
