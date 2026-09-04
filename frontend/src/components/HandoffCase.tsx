@@ -1,11 +1,6 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { motion } from "framer-motion";
-
-import {
-  generateHandoff,
-  type ConsentCategory,
-  type HandoffBundle,
-} from "../services/handoffApi";
+import { apiRequest } from "../services/api";
 
 interface Props {
   availableTags: string[];
@@ -14,534 +9,504 @@ interface Props {
   onFinish: () => void;
 }
 
-const OPTIONS: Array<{
-  category: ConsentCategory;
+type Category = "physical" | "economic" | "digital";
+
+const categoryInfo: {
+  id: Category;
   number: string;
   title: string;
   description: string;
-}> = [
+}[] = [
   {
-    category: "physical",
+    id: "physical",
     number: "01",
-    title: "Physical safety incidents",
-    description:
-      "Include recorded incidents involving physical harm or safety concerns.",
+    title: "Physical harm",
+    description: "Incidents involving physical violence or threats of harm.",
   },
   {
-    category: "economic",
+    id: "economic",
     number: "02",
-    title: "Economic concerns",
-    description:
-      "Include incidents involving money, cards or financial access.",
+    title: "Economic control",
+    description: "Money, bank access, cards, documents or financial control.",
   },
   {
-    category: "digital",
+    id: "digital",
     number: "03",
-    title: "Digital concerns",
-    description:
-      "Include incidents involving digital threats or online safety concerns.",
+    title: "Digital coercion",
+    description: "Device monitoring, account access or private-content threats.",
   },
 ];
 
-export default function HandoffCase({
-  availableTags,
+export default function Handoff({
   onBack,
   onQuickExit,
   onFinish,
 }: Props) {
-  const [selected, setSelected] = useState<
-    ConsentCategory[]
-  >([]);
+  // Demo begins with Physical + Economic included,
+  // while Digital remains private.
+  const [selected, setSelected] = useState<Category[]>([
+    "physical",
+    "economic",
+  ]);
 
-  const [includeEvidence, setIncludeEvidence] =
-    useState(false);
-
-  const [recipientNote, setRecipientNote] =
-    useState("");
-
-  const [bundle, setBundle] =
-    useState<HandoffBundle | null>(null);
-
+  const [includeEvidence, setIncludeEvidence] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [prepared, setPrepared] = useState(false);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState<string | null>(null);
-
-  function toggleCategory(
-    category: ConsentCategory
-  ) {
-    setSelected((current) =>
-      current.includes(category)
-        ? current.filter(
-            (item) => item !== category
-          )
-        : [...current, category]
+  const toggleCategory = (category: Category) => {
+    setSelected((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category]
     );
 
-    // Changing consent invalidates the previous bundle.
-    setBundle(null);
-  }
+    setPrepared(false);
+    setError("");
+  };
 
-  async function handleGenerate() {
+  const toggleEvidence = () => {
+    setIncludeEvidence((prev) => !prev);
+    setPrepared(false);
+    setError("");
+  };
+
+  const generateHandoff = async () => {
     if (selected.length === 0) {
-      setError(
-        "Choose at least one part of your Case Record."
-      );
+      setError("Choose at least one category to prepare a handoff.");
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setError("");
 
     try {
-      const result = await generateHandoff({
-        consented_categories: selected,
-        include_evidence: includeEvidence,
-        recipient_note:
-          recipientNote.trim() || null,
+      await apiRequest("/api/handoff/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          consented_categories: selected,
+          include_evidence: includeEvidence,
+          recipient_note: null,
+        }),
       });
 
-      setBundle(result);
+      setPrepared(true);
     } catch (err) {
-      console.error(err);
+      console.error("Handoff generation failed:", err);
 
       setError(
         err instanceof Error
           ? err.message
-          : "ANTARA couldn't prepare this handoff."
+          : "The handoff could not be prepared right now. Nothing has been sent."
       );
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const includedNames = categoryInfo
+    .filter((item) => selected.includes(item.id))
+    .map((item) => item.title);
+
+  const privateNames = categoryInfo
+    .filter((item) => !selected.includes(item.id))
+    .map((item) => item.title);
 
   return (
     <motion.main
-      className="handoff-page"
+      className="handoff-screen"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
-      <header className="antara-header">
-        <div className="antara-brand">
-          <div className="antara-logo">A</div>
-
-          <div>
-            <span>ANTARA</span>
-            <small>HANDOFF</small>
-          </div>
-        </div>
+      {/* TOP NAVIGATION */}
+      <header className="handoff-nav">
+        <button
+          type="button"
+          className="handoff-back-button"
+          onClick={onBack}
+        >
+          <span>←</span>
+          Back to case
+        </button>
 
         <button
-          className="quick-exit"
+          type="button"
+          className="handoff-quick-exit"
           onClick={onQuickExit}
         >
           Quick Exit
         </button>
       </header>
 
-      <div className="handoff-layout">
-        <aside className="handoff-intro">
-          <button
-            className="back-link"
-            onClick={onBack}
-          >
-            ← Back
-          </button>
-
-          <p className="dashboard-kicker">
-            06 — HANDOFF
-          </p>
+      <div className="handoff-container">
+        {/* HERO */}
+        <motion.section
+          className="handoff-header"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          <div className="handoff-kicker">
+            <span>06</span>
+            <span className="handoff-kicker-line" />
+            <span>HANDOFF</span>
+          </div>
 
           <h1>
-            You decide
+            You decide what
             <br />
-            <em>what leaves.</em>
+            <em>leaves with you.</em>
           </h1>
 
           <p>
-            Seeking help should not mean surrendering
-            everything you have stored.
+            Your Case Record stays private. You choose what you're ready
+            to carry forward — and what remains with you.
           </p>
+        </motion.section>
 
-          <div className="handoff-principle">
-            <span>◇</span>
+        <AnimatePresence mode="wait">
+          {!prepared ? (
+            <motion.div
+              key="builder"
+              className="handoff-layout"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35 }}
+            >
+              {/* LEFT — CHOICES */}
+              <section className="handoff-builder">
+                <div className="handoff-section-heading">
+                  <div>
+                    <span className="handoff-small-label">
+                      BUILD YOUR HANDOFF
+                    </span>
 
-            <div>
-              <strong>
-                Consent comes first.
-              </strong>
+                    <h2>Choose what to include.</h2>
+                  </div>
 
-              <p>
-                Choose the parts of your Case Record you
-                want included. Anything you leave
-                unchecked stays outside this handoff.
-              </p>
-            </div>
-          </div>
-        </aside>
+                  <div className="handoff-control-badge">
+                    Survivor controlled
+                  </div>
+                </div>
 
-        <section className="handoff-content">
-          {!bundle ? (
-            <>
-              <div className="handoff-heading">
-                <span className="structure-eyebrow">
-                  CHOOSE WHAT TO INCLUDE
-                </span>
+                <div className="handoff-choice-list">
+                  {categoryInfo.map((category) => {
+                    const isSelected = selected.includes(category.id);
 
-                <h2>
-                  Build a consent-scoped handoff.
-                </h2>
+                    return (
+                      <motion.button
+                        key={category.id}
+                        type="button"
+                        className={`handoff-choice ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        onClick={() => toggleCategory(category.id)}
+                        whileTap={{ scale: 0.992 }}
+                      >
+                        <div className="handoff-choice-left">
+                          <span className="handoff-choice-number">
+                            {category.number}
+                          </span>
 
-                <p>
-                  Nothing is selected automatically.
-                </p>
-              </div>
-
-              <div className="handoff-options">
-                {OPTIONS.map((option) => {
-                  const checked =
-                    selected.includes(
-                      option.category
-                    );
-
-                  const present =
-                    availableTags.includes(
-                      option.category
-                    );
-
-                  return (
-                    <button
-                      type="button"
-                      key={option.category}
-                      className={`handoff-option ${
-                        checked
-                          ? "handoff-option-selected"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        toggleCategory(
-                          option.category
-                        )
-                      }
-                    >
-                      <div className="handoff-option-number">
-                        {option.number}
-                      </div>
-
-                      <div className="handoff-option-copy">
-                        <div className="handoff-option-title">
-                          <h3>
-                            {option.title}
-                          </h3>
-
-                          {present && (
-                            <span>
-                              IN CASE RECORD
-                            </span>
-                          )}
+                          <div className="handoff-choice-copy">
+                            <h3>{category.title}</h3>
+                            <p>{category.description}</p>
+                          </div>
                         </div>
 
-                        <p>
-                          {option.description}
-                        </p>
-                      </div>
+                        <div
+                          className={`handoff-choice-status ${
+                            isSelected ? "active" : ""
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <span className="handoff-tick">✓</span>
+                              Included
+                            </>
+                          ) : (
+                            "Keep private"
+                          )}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
 
+                {/* EVIDENCE */}
+                <div className="handoff-evidence-section">
+                  <span className="handoff-small-label">
+                    SUPPORTING MATERIAL
+                  </span>
+
+                  <motion.button
+                    type="button"
+                    className={`handoff-evidence-card ${
+                      includeEvidence ? "selected" : ""
+                    }`}
+                    onClick={toggleEvidence}
+                    whileTap={{ scale: 0.992 }}
+                  >
+                    <div className="handoff-evidence-icon">◇</div>
+
+                    <div className="handoff-evidence-copy">
+                      <h3>Evidence attachments</h3>
+                      <p>
+                        Photos, files and supporting evidence linked to the
+                        selected incident history.
+                      </p>
+                    </div>
+
+                    <div
+                      className={`handoff-evidence-state ${
+                        includeEvidence ? "active" : ""
+                      }`}
+                    >
+                      {includeEvidence ? "Included ✓" : "Not included"}
+                    </div>
+                  </motion.button>
+                </div>
+
+                {error && (
+                  <motion.div
+                    className="handoff-error"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {error}
+                  </motion.div>
+                )}
+              </section>
+
+              {/* RIGHT — LIVE PREVIEW */}
+              <aside className="handoff-preview">
+                <div className="handoff-preview-top">
+                  <span className="handoff-small-label">
+                    HANDOFF PREVIEW
+                  </span>
+
+                  <span className="handoff-live-dot">
+                    <i />
+                    Live
+                  </span>
+                </div>
+
+                <div className="handoff-preview-count">
+                  <strong>{selected.length}</strong>
+
+                  <span>
+                    {selected.length === 1 ? "category" : "categories"}
+                    <br />
+                    selected
+                  </span>
+                </div>
+
+                <div className="handoff-preview-rule" />
+
+                <div className="handoff-preview-group">
+                  <span>INCLUDED</span>
+
+                  {includedNames.length > 0 ? (
+                    includedNames.map((name) => (
                       <div
-                        className={`handoff-check ${
-                          checked
-                            ? "handoff-check-active"
-                            : ""
-                        }`}
+                        className="handoff-preview-item included"
+                        key={name}
                       >
-                        {checked ? "✓" : ""}
+                        <span>✓</span>
+                        {name}
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="handoff-evidence">
-                <div>
-                  <span>
-                    ATTACHED EVIDENCE
-                  </span>
-
-                  <h3>
-                    Include evidence references?
-                  </h3>
-
-                  <p>
-                    Leave this off if you want the
-                    handoff to contain the incident
-                    record without its evidence.
-                  </p>
+                    ))
+                  ) : (
+                    <p className="handoff-none">Nothing selected yet.</p>
+                  )}
                 </div>
 
-                <button
+                <div className="handoff-preview-group">
+                  <span>KEPT PRIVATE</span>
+
+                  {privateNames.length > 0 ? (
+                    privateNames.map((name) => (
+                      <div
+                        className="handoff-preview-item private"
+                        key={name}
+                      >
+                        <span>—</span>
+                        {name}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="handoff-none">
+                      All categories selected.
+                    </p>
+                  )}
+
+                  {!includeEvidence && (
+                    <div className="handoff-preview-item private">
+                      <span>—</span>
+                      Evidence attachments
+                    </div>
+                  )}
+                </div>
+
+                <div className="handoff-preview-rule" />
+
+                <div className="handoff-preview-contents">
+                  <span>THE BUNDLE WILL PREPARE</span>
+
+                  <p>Case summary</p>
+                  <p>Relevant incident history</p>
+                  <p>Selected supporting information</p>
+                </div>
+
+                <motion.button
                   type="button"
-                  className={`antara-switch ${
-                    includeEvidence
-                      ? "antara-switch-on"
-                      : ""
-                  }`}
-                  onClick={() => {
-                    setIncludeEvidence(
-                      (current) => !current
-                    );
-                    setBundle(null);
-                  }}
-                  aria-label="Include evidence"
-                >
-                  <span />
-                </button>
-              </div>
-
-              <div className="handoff-note">
-                <label htmlFor="recipient-note">
-                  OPTIONAL RECIPIENT NOTE
-                </label>
-
-                <textarea
-                  id="recipient-note"
-                  value={recipientNote}
-                  onChange={(event) => {
-                    setRecipientNote(
-                      event.target.value
-                    );
-                    setBundle(null);
-                  }}
-                  placeholder="For example: For counselor review"
-                  rows={3}
-                />
-              </div>
-
-              <div className="handoff-selection-summary">
-                <span>YOUR SELECTION</span>
-
-                <strong>
-                  {selected.length === 0
-                    ? "Nothing selected yet"
-                    : `${selected.length} ${
-                        selected.length === 1
-                          ? "category"
-                          : "categories"
-                      } selected`}
-                </strong>
-
-                <p>
-                  Evidence:{" "}
-                  {includeEvidence
-                    ? "included"
-                    : "not included"}
-                </p>
-              </div>
-
-              {error && (
-                <div className="prepare-error">
-                  {error}
-                </div>
-              )}
-
-              <div className="handoff-actions">
-                <div>
-                  <strong>
-                    Review before anything goes
-                    further.
-                  </strong>
-
-                  <span>
-                    This creates a bundle. It does
-                    not send it.
-                  </span>
-                </div>
-
-                <button
-                  className="record-continue"
-                  disabled={
-                    loading ||
-                    selected.length === 0
+                  className="handoff-generate-button"
+                  onClick={generateHandoff}
+                  disabled={loading || selected.length === 0}
+                  whileHover={
+                    !loading && selected.length > 0
+                      ? { y: -2 }
+                      : undefined
                   }
-                  onClick={handleGenerate}
+                  whileTap={
+                    !loading && selected.length > 0
+                      ? { scale: 0.98 }
+                      : undefined
+                  }
                 >
-                  {loading
-                    ? "Preparing..."
-                    : "Prepare Handoff →"}
-                </button>
-              </div>
-            </>
+                  {loading ? (
+                    "Preparing…"
+                  ) : (
+                    <>
+                      Generate handoff
+                      <span>→</span>
+                    </>
+                  )}
+                </motion.button>
+
+                <p className="handoff-no-send">
+                  Nothing is sent automatically.
+                </p>
+              </aside>
+            </motion.div>
           ) : (
-            <motion.div
-              className="handoff-result"
-              initial={{
-                opacity: 0,
-                y: 12,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
+            /* SUCCESS STATE */
+            <motion.section
+              key="success"
+              className="handoff-success"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
             >
-              <span className="structure-eyebrow">
+              <motion.div
+                className="handoff-success-mark"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 180,
+                  damping: 15,
+                }}
+              >
+                ✓
+              </motion.div>
+
+              <span className="handoff-small-label">
                 HANDOFF PREPARED
               </span>
 
               <h2>
-                Only what you chose.
+                Your choices
+                <br />
+                <em>remain yours.</em>
               </h2>
 
-              <p className="handoff-result-intro">
-                ANTARA has prepared a scoped copy of
-                the Case Record based on your consent.
+              <p className="handoff-success-intro">
+                A handoff has been prepared from the categories you chose
+                to carry forward. Nothing has been transmitted automatically.
               </p>
 
-              <div className="handoff-result-stats">
-                <div>
-                  <span>Categories shared</span>
+              <div className="handoff-success-grid">
+                <div className="handoff-success-column included">
+                  <span>INCLUDED</span>
 
-                  <strong>
-                    {
-                      bundle
-                        .consented_categories
-                        .length
-                    }
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Incidents included</span>
-
-                  <strong>
-                    {bundle.incidents.length}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Evidence</span>
-
-                  <strong>
-                    {includeEvidence
-                      ? "Included"
-                      : "Excluded"}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="handoff-consent-list">
-                <span>CONSENTED INFORMATION</span>
-
-                {bundle.consented_categories.map(
-                  (category) => (
-                    <div key={category}>
-                      <span>✓</span>
-
-                      <strong>
-                        {category === "physical"
-                          ? "Physical safety incidents"
-                          : category === "economic"
-                          ? "Economic concerns"
-                          : "Digital concerns"}
-                      </strong>
+                  {includedNames.map((name) => (
+                    <div key={name}>
+                      <i>✓</i>
+                      {name}
                     </div>
-                  )
-                )}
-              </div>
+                  ))}
 
-              <div className="handoff-incidents">
-                <span>INCLUDED INCIDENTS</span>
-
-                {bundle.incidents.length === 0 ? (
-                  <p>
-                    No matching incidents were found
-                    for the categories you selected.
-                  </p>
-                ) : (
-                  bundle.incidents.map(
-                    (incident, index) => (
-                      <article
-                        key={
-                          incident.incident_id ??
-                          index
-                        }
-                      >
-                        <div>
-                          <span>
-                            INCIDENT{" "}
-                            {String(
-                              index + 1
-                            ).padStart(2, "0")}
-                          </span>
-
-                          {incident.date && (
-                            <small>
-                              {incident.date}
-                            </small>
-                          )}
-                        </div>
-
-                        <blockquote>
-                          “{incident.description}”
-                        </blockquote>
-
-                        <small>
-                          Evidence included:{" "}
-                          {incident.evidence
-                            ?.length ?? 0}
-                        </small>
-                      </article>
-                    )
-                  )
-                )}
-              </div>
-
-              {bundle.recipient_note && (
-                <div className="handoff-result-note">
-                  <span>RECIPIENT NOTE</span>
-
-                  <p>
-                    {bundle.recipient_note}
-                  </p>
+                  {includeEvidence && (
+                    <div>
+                      <i>✓</i>
+                      Evidence attachments
+                    </div>
+                  )}
                 </div>
-              )}
 
-              <div className="handoff-not-sent">
-                <span>◇</span>
+                <div className="handoff-success-column private">
+                  <span>KEPT PRIVATE</span>
 
-                <div>
-                  <strong>
-                    Nothing has been sent.
-                  </strong>
+                  {privateNames.length > 0 ? (
+                    privateNames.map((name) => (
+                      <div key={name}>
+                        <i>—</i>
+                        {name}
+                      </div>
+                    ))
+                  ) : (
+                    <div>
+                      <i>—</i>
+                      No categories withheld
+                    </div>
+                  )}
 
-                  <p>
-                    The backend has generated this
-                    consent-scoped bundle, but ANTARA
-                    has not transmitted it to a
-                    counselor, police service, legal
-                    authority, NGO or any other
-                    recipient.
-                  </p>
+                  {!includeEvidence && (
+                    <div>
+                      <i>—</i>
+                      Evidence attachments
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="handoff-result-actions">
+              <div className="handoff-success-message">
+                <div>◇</div>
+
+                <p>
+                  <strong>Nothing has been sent.</strong>
+                  This bundle is ready only when you choose to share it.
+                </p>
+              </div>
+
+              <div className="handoff-success-actions">
                 <button
-                  className="handoff-edit"
-                  onClick={() =>
-                    setBundle(null)
-                  }
+                  type="button"
+                  className="handoff-review-button"
+                  onClick={() => {
+                    setPrepared(false);
+                    setError("");
+                  }}
                 >
-                  ← Change selection
+                  ← Review choices
                 </button>
 
                 <button
-                  className="record-continue"
+                  type="button"
+                  className="handoff-done-button"
                   onClick={onFinish}
                 >
-                  Finish →
+                  Back to Case Record
+                  <span>→</span>
                 </button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
-        </section>
+        </AnimatePresence>
       </div>
     </motion.main>
   );
