@@ -1,0 +1,11 @@
+{
+  "support_types": [
+    { "key": "police", "label": "Police / Emergency", "matches_categories": ["physical"] },
+    { "key": "shelter", "label": "Shelter / Safe House", "matches_categories": ["physical"] },
+    { "key": "medical", "label": "Medical / Medico-legal", "matches_categories": ["physical"] },
+    { "key": "counseling", "label": "Counseling / Crisis Support", "matches_categories": ["physical", "economic", "digital"] },
+    { "key": "legal", "label": "Legal Aid", "matches_categories": ["economic", "digital"] },
+    { "key": "financial", "label": "Financial / Fraud Recovery", "matches_categories": ["economic"] },
+    { "key": "cyber", "label": "Cyber Crime Cell", "matches_categories": ["digital"] }
+  ]
+}
