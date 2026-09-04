@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ensureDemoSession } from "../services/demoSession";
+import { ensurePrototypeSession } from "../services/prototypeSession";
 
 interface Props {
   onUnlock: () => void;
@@ -13,9 +13,8 @@ export default function SecretUnlock({ onUnlock, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (pin !== "2908") {
-      setError("That PIN wasn't recognised.");
-      setPin("");
+    if (pin.length < 4) {
+      setError("Enter your private PIN.");
       return;
     }
 
@@ -23,13 +22,12 @@ export default function SecretUnlock({ onUnlock, onCancel }: Props) {
     setError("");
 
     try {
-      await ensureDemoSession();
+      await ensurePrototypeSession();
       onUnlock();
     } catch (err) {
       console.error(err);
-
       setError(
-        "ANTARA couldn't connect right now. Please check that the backend is running."
+        "ANTARA couldn't open the private space. Please check the connection."
       );
     } finally {
       setLoading(false);
@@ -65,7 +63,7 @@ export default function SecretUnlock({ onUnlock, onCancel }: Props) {
           value={pin}
           disabled={loading}
           onChange={(event) => {
-            setPin(event.target.value);
+            setPin(event.target.value.replace(/\D/g, ""));
             setError("");
           }}
           onKeyDown={(event) => {
@@ -78,6 +76,7 @@ export default function SecretUnlock({ onUnlock, onCancel }: Props) {
         {error && <span className="pin-error">{error}</span>}
 
         <button
+          type="button"
           className="unlock-button"
           onClick={submit}
           disabled={loading}
@@ -86,12 +85,23 @@ export default function SecretUnlock({ onUnlock, onCancel }: Props) {
         </button>
 
         <button
+          type="button"
           className="cancel-button"
           onClick={onCancel}
           disabled={loading}
         >
           Return
         </button>
+
+        <p
+          style={{
+            marginTop: "18px",
+            fontSize: "10px",
+            opacity: 0.55,
+          }}
+        >
+          Prototype access layer
+        </p>
       </motion.section>
     </motion.main>
   );
