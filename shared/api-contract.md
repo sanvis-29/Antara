@@ -48,3 +48,19 @@ Body (matches the frozen incident structure below, minus `incident_id`,
   "people_involved": [{ "role": "husband", "name": "optional" }],
   "categories": { "physical": true, "economic": true, "digital": true },
   "economic_details": { "money_controlled": true, "card_withheld":
+  ## Essential Documents
+
+Separate from case evidence — linked to the survivor/vault, not an incident.
+
+### `POST /api/documents`
+Multipart form: `document_type`, `label`, `file`. `user_id` from JWT.
+Response `201`: `{ "document_id", "user_id", "document_type", "label", "original_filename", "sha256_hash", "created_at" }`
+
+### `GET /api/documents`
+Response `200`: `{ "user_id", "documents": [{ "document_id", "document_type", "label", "created_at" }] }`
+
+### `DELETE /api/documents/{document_id}`
+Response `204`.
+
+Contents are never returned — metadata only. Guardian backup/recovery
+responses should include a `"documents"` array alongside `"incidents"`.
