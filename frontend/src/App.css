@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap");
 
 * {
   box-sizing: border-box;
@@ -9,126 +9,259 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: "DM Sans", sans-serif;
-  background: #3d0717;
 }
 
-button {
+button,
+input {
   font: inherit;
 }
 
-.app {
+/* PETAL POP */
+
+.petal-game {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 80% 20%, rgba(170, 74, 102, 0.2), transparent 30%),
-    linear-gradient(145deg, #310611, #590d25);
-  color: #f8eee8;
-  display: flex;
-  justify-content: center;
-  padding: 28px;
-}
-
-.antara-shell {
-  width: min(1180px, 100%);
-  min-height: calc(100vh - 56px);
-  border: 1px solid rgba(255, 239, 229, 0.16);
-  border-radius: 28px;
-  padding: 38px 48px;
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.7), transparent 25%),
+    linear-gradient(150deg, #fff9ed, #f5e9cd);
+  color: #324335;
+  padding: 38px max(24px, calc((100vw - 620px) / 2));
   display: flex;
   flex-direction: column;
-  background: rgba(77, 10, 31, 0.62);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 24px 70px rgba(22, 0, 8, 0.3);
 }
 
-.brand {
+.game-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  letter-spacing: 0.22em;
-  font-weight: 600;
 }
 
-.brand-mark {
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(255, 235, 224, 0.55);
+.game-kicker {
+  margin: 0 0 4px;
+  color: #87977d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+
+.game-header h1 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: 38px;
+  color: #38513d;
+}
+
+.coin-pill {
+  background: rgba(255,255,255,.72);
+  border: 1px solid #e6d9bb;
+  padding: 10px 15px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.game-card {
+  margin: auto 0;
+  background: rgba(255,255,255,.62);
+  border: 1px solid rgba(201,185,150,.45);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 24px 70px rgba(77,74,45,.12);
+}
+
+.game-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.game-stats div {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-stats span {
+  color: #8c927f;
+  font-size: 10px;
+  letter-spacing: .14em;
+  font-weight: 700;
+}
+
+.game-stats strong {
+  font-size: 22px;
+}
+
+.flower-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.flower-tile {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 20px;
+  background: #f8eed5;
+  font-size: clamp(30px, 7vw, 48px);
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 rgba(103,111,74,.08);
+}
+
+.play-button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  border: 0;
+  border-radius: 16px;
+  background: #66855e;
+  color: white;
+  font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.game-tip {
+  text-align: center;
+  color: #8a907e;
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+
+.game-nav {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 24px;
+}
+
+.game-nav button {
+  border: 0;
+  background: transparent;
+  color: #929886;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  font-size: 17px;
+}
+
+.game-nav span {
+  font-size: 10px;
+}
+
+.game-nav .active {
+  color: #4f7353;
+}
+
+/* SECRET ACCESS */
+
+.unlock-screen,
+.antara-placeholder {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 80% 15%, rgba(174,81,108,.25), transparent 28%),
+    linear-gradient(145deg, #310611, #590d25);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #f8eee8;
+}
+
+.unlock-card {
+  width: min(430px, 100%);
+  background: rgba(92,18,42,.62);
+  border: 1px solid rgba(255,235,224,.18);
+  border-radius: 28px;
+  padding: 42px;
+  text-align: center;
+  box-shadow: 0 25px 80px rgba(20,0,8,.3);
+  backdrop-filter: blur(14px);
+}
+
+.unlock-symbol {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 22px;
+  border: 1px solid rgba(255,235,224,.45);
   border-radius: 50%;
   display: grid;
   place-items: center;
+}
+
+.unlock-kicker {
+  color: #dba6b5 !important;
+  letter-spacing: .18em;
+  font-size: 10px !important;
+  font-weight: 700;
+}
+
+.unlock-card h1 {
   font-family: "Playfair Display", serif;
-  font-size: 18px;
+  font-size: 40px;
+  margin: 8px 0;
 }
 
-.hero {
-  margin: auto 0;
-  max-width: 720px;
+.unlock-card p {
+  color: #dcc7c8;
+  font-size: 14px;
 }
 
-.eyebrow {
-  margin: 0 0 22px;
-  color: #dca7b4;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+.unlock-card input {
+  width: 100%;
+  margin-top: 22px;
+  background: rgba(255,255,255,.08);
+  color: white;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 14px;
+  padding: 15px;
+  text-align: center;
+  letter-spacing: .4em;
+  outline: none;
 }
 
-.hero h1 {
-  margin: 0;
-  font-family: "Playfair Display", serif;
-  font-size: clamp(54px, 8vw, 96px);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
-  font-weight: 600;
-}
-
-.hero h1 em {
-  color: #e7b4bf;
-  font-weight: 600;
-}
-
-.hero-copy {
-  max-width: 520px;
-  margin: 30px 0;
-  color: #e5d2d1;
-  font-size: 17px;
-  line-height: 1.7;
-}
-
-.primary-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 14px 24px;
-  background: #f4e8df;
-  color: #4b0b20;
-  font-weight: 600;
+.unlock-button,
+.cancel-button {
+  width: 100%;
+  border-radius: 14px;
+  padding: 14px;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.primary-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(20, 0, 8, 0.25);
+.unlock-button {
+  margin-top: 14px;
+  border: 0;
+  background: #f2e4dc;
+  color: #4a0a20;
+  font-weight: 700;
 }
 
-.privacy-note {
-  margin: 0;
-  color: rgba(248, 238, 232, 0.55);
+.cancel-button {
+  margin-top: 8px;
+  background: transparent;
+  border: 0;
+  color: #cdaeb5;
+}
+
+.pin-error {
+  display: block;
+  margin-top: 10px;
+  color: #f0b5bf;
   font-size: 12px;
 }
 
-@media (max-width: 650px) {
-  .app {
-    padding: 14px;
-  }
+.antara-placeholder {
+  text-align: center;
+}
 
-  .antara-shell {
-    min-height: calc(100vh - 28px);
-    padding: 28px 24px;
-    border-radius: 22px;
-  }
+.antara-placeholder h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 64px;
+  margin: 0;
+}
 
-  .hero h1 {
-    font-size: 52px;
-  }
+.antara-placeholder button {
+  margin-top: 20px;
+  border: 0;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
 }
