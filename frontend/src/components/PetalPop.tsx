@@ -188,7 +188,7 @@ export default function PetalPop({
   /*
    * Covert ANTARA gesture.
    *
-   * Holding the flower logo for 1.8 seconds
+    * Holding the PLAY button for 1.8 seconds
    * opens the private access layer.
    */
   const startSecretPress = () => {
@@ -227,20 +227,9 @@ export default function PetalPop({
     >
       <header className="game-header">
         <div className="petal-title-row">
-          <motion.button
-            type="button"
-            className="petal-secret-flower"
-            aria-label="Petal Pop flower"
-            onPointerDown={startSecretPress}
-            onPointerUp={cancelSecretPress}
-            onPointerLeave={cancelSecretPress}
-            onContextMenu={(event) =>
-              event.preventDefault()
-            }
-            whileTap={{ scale: 0.9 }}
-          >
+          <div className="petal-secret-flower">
             🌸
-          </motion.button>
+          </div>
 
           <div>
             <p className="game-kicker">
@@ -325,6 +314,18 @@ export default function PetalPop({
             );
           })}
         </div>
+
+        <motion.button
+          type="button"
+          className="play-button"
+          whileTap={{ scale: 0.96 }}
+          onPointerDown={startSecretPress}
+          onPointerUp={cancelSecretPress}
+          onPointerLeave={cancelSecretPress}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          PLAY
+        </motion.button>
 
         <motion.div
           className="game-message"
