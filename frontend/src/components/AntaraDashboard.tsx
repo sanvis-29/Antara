@@ -1,8 +1,14 @@
 import { motion } from "framer-motion";
 
 interface Props {
+  hasCase: boolean;
   onQuickExit: () => void;
   onRecord: () => void;
+  onStructure: () => void;
+  onPreserve: () => void;
+  onPrepare: () => void;
+  onNavigate: () => void;
+  onHandoff: () => void;
 }
 
 const steps = [
@@ -21,13 +27,13 @@ const steps = [
   {
     number: "03",
     title: "Preserve",
-    text: "Protect your case and essential documents beyond one device.",
+    text: "Protect recovery copies and essential documents.",
     icon: "◇",
   },
   {
     number: "04",
     title: "Prepare",
-    text: "Create organised support-ready records when you need them.",
+    text: "Create support-ready records without submitting them.",
     icon: "≡",
   },
   {
@@ -39,21 +45,37 @@ const steps = [
   {
     number: "06",
     title: "Handoff",
-    text: "Choose exactly what you want to share and with whom.",
+    text: "Choose what you want to carry forward.",
     icon: "→",
   },
 ];
 
 export default function AntaraDashboard({
+  hasCase,
   onQuickExit,
   onRecord,
+  onStructure,
+  onPreserve,
+  onPrepare,
+  onNavigate,
+  onHandoff,
 }: Props) {
+  const handlers = [
+    onRecord,
+    onStructure,
+    onPreserve,
+    onPrepare,
+    onNavigate,
+    onHandoff,
+  ];
+
   return (
     <motion.main
       className="antara-dashboard"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.22 }}
     >
       <header className="antara-header">
         <div className="antara-brand">
@@ -65,7 +87,11 @@ export default function AntaraDashboard({
           </div>
         </div>
 
-        <button className="quick-exit" onClick={onQuickExit}>
+        <button
+          type="button"
+          className="quick-exit"
+          onClick={onQuickExit}
+        >
           Quick Exit
         </button>
       </header>
@@ -75,7 +101,7 @@ export default function AntaraDashboard({
           className="dashboard-kicker"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.08 }}
         >
           YOU REMAIN IN CONTROL
         </motion.p>
@@ -83,7 +109,7 @@ export default function AntaraDashboard({
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.16 }}
+          transition={{ delay: 0.13 }}
         >
           Your story.
           <br />
@@ -94,47 +120,132 @@ export default function AntaraDashboard({
           className="dashboard-description"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ delay: 0.19 }}
+        >
+          Tell your story once. Organise and preserve it
+          privately, then carry it wherever you choose to
+          seek help.
+        </motion.p>
+
+        <motion.div
+          className="case-continuity"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24 }}
         >
-          ANTARA helps you record, organise and preserve important information
-          privately — then decide what happens next.
-        </motion.p>
+          <span className="case-continuity-mark">◇</span>
+
+          <div>
+            <strong>
+              One story. One evolving Case Record.
+            </strong>
+            <span>
+              Record · Structure · Preserve · Prepare ·
+              Navigate · Handoff
+            </span>
+          </div>
+        </motion.div>
       </section>
 
       <section className="journey">
         <div className="journey-heading">
           <p>YOUR JOURNEY</p>
-          <span>Move at your own pace.</span>
+
+          <span>
+            {hasCase
+              ? "Your Case Record is ready to continue."
+              : "Begin wherever you feel ready."}
+          </span>
         </div>
 
         <div className="journey-grid">
-          {steps.map((step, index) => (
-            <motion.button
-              key={step.title}
-              className={`journey-card ${index === 0 ? "journey-active" : ""}`}
-              onClick={index === 0 ? onRecord : undefined}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.28 + index * 0.06 }}
-              whileHover={index === 0 ? { y: -4 } : undefined}
-            >
-              <div className="journey-card-top">
-                <span className="step-number">{step.number}</span>
-                <span className="step-icon">{step.icon}</span>
-              </div>
+          {steps.map((step, index) => {
+            const accessible = index === 0 || hasCase;
 
-              <h2>{step.title}</h2>
-              <p>{step.text}</p>
+            return (
+              <motion.button
+                type="button"
+                key={step.title}
+                className={[
+                  "journey-card",
+                  accessible ? "journey-active" : "",
+                  !accessible ? "journey-locked" : "",
+                  hasCase && index <= 1
+                    ? "journey-complete"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={
+                  accessible
+                    ? handlers[index]
+                    : undefined
+                }
+                disabled={!accessible}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.26 + index * 0.045,
+                }}
+                whileHover={
+                  accessible ? { y: -3 } : undefined
+                }
+              >
+                <div className="journey-card-top">
+                  <span className="step-number">
+                    {step.number}
+                  </span>
 
-              {index === 0 && <span className="begin-link">Begin →</span>}
-            </motion.button>
-          ))}
+                  <span className="step-icon">
+                    {step.icon}
+                  </span>
+                </div>
+
+                <h2>{step.title}</h2>
+                <p>{step.text}</p>
+
+                <div className="journey-card-bottom">
+                  {index === 0 && !hasCase && (
+                    <span className="begin-link">
+                      Begin →
+                    </span>
+                  )}
+
+                  {index === 0 && hasCase && (
+                    <span className="journey-status">
+                      RECORDED ✓
+                    </span>
+                  )}
+
+                  {index === 1 && hasCase && (
+                    <span className="journey-status">
+                      ORGANISED ✓
+                    </span>
+                  )}
+
+                  {index > 1 && hasCase && (
+                    <span className="begin-link">
+                      Open →
+                    </span>
+                  )}
+
+                  {!accessible && (
+                    <span className="journey-waiting">
+                      AFTER RECORD
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
       </section>
 
       <footer className="dashboard-footer">
         <span>Private by design.</span>
-        <span>Nothing is shared without your choice.</span>
+        <span>
+          Nothing leaves ANTARA without your choice.
+        </span>
       </footer>
     </motion.main>
   );

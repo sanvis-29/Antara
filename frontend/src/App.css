@@ -3428,3 +3428,107 @@ input {
     grid-column: 1;
   }
 }
+/* =========================================================
+   DASHBOARD DEMO POLISH
+========================================================= */
+
+.case-continuity {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: fit-content;
+  max-width: 620px;
+  margin-top: 28px;
+  padding: 13px 16px;
+  background: rgba(255, 245, 239, 0.055);
+  border: 1px solid rgba(255, 235, 225, 0.12);
+  border-radius: 12px;
+}
+
+.case-continuity-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
+  color: #f1c4cf;
+  border: 1px solid rgba(241, 196, 207, 0.3);
+  border-radius: 50%;
+}
+
+.case-continuity strong,
+.case-continuity div > span {
+  display: block;
+}
+
+.case-continuity strong {
+  color: #f4dfdc;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.case-continuity div > span {
+  margin-top: 3px;
+  color: #a98990;
+  font-size: 0.56rem;
+  letter-spacing: 0.035em;
+}
+
+.journey-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.journey-card-bottom {
+  min-height: 20px;
+  margin-top: auto;
+  padding-top: 17px;
+}
+
+.journey-status {
+  color: #e6b7c3;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.journey-waiting {
+  color: rgba(218, 190, 194, 0.35);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.journey-locked {
+  cursor: default !important;
+  opacity: 0.48;
+}
+
+.journey-locked:hover {
+  transform: none !important;
+}
+
+.journey-complete::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 2px;
+  background: #dca6b4;
+}
+
+.journey-card:disabled {
+  color: inherit;
+}
+
+@media (max-width: 560px) {
+  .case-continuity {
+    width: auto;
+  }
+
+  .case-continuity div > span {
+    display: none;
+  }
+}

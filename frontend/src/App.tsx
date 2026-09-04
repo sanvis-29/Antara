@@ -8,14 +8,14 @@ import PreserveCase from "./components/PreserveCase";
 import PrepareCase from "./components/PrepareCase";
 import NavigateSupport from "./components/NavigateSupport";
 import HandoffCase from "./components/HandoffCase";
+
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
+
 import StructureCase from "./components/StructureCase";
 
-import {
-  createIncident,
-} from "./services/incidentApi";
+import { createIncident } from "./services/incidentApi";
 
 import {
   structureIncident,
@@ -64,10 +64,6 @@ function App() {
     setRecordError(null);
 
     try {
-      /*
-       * STEP 1
-       * Preserve the incident.
-       */
       const incident = await createIncident(data);
 
       const incidentId =
@@ -82,19 +78,11 @@ function App() {
         );
       }
 
-      /*
-       * STEP 2
-       * Structure it.
-       */
       const structured =
         await structureIncident(incidentId);
 
       setStructuredIncident(structured);
 
-      /*
-       * STEP 3
-       * Fetch the updated Case Record.
-       */
       const userId =
         structured.user_id ??
         (typeof incident.user_id === "string"
@@ -111,11 +99,6 @@ function App() {
         await getCaseRecord(userId);
 
       setCaseRecord(currentCase);
-
-      /*
-       * Only enter 02 after all real backend
-       * operations have succeeded.
-       */
       setScreen("structure");
     } catch (error) {
       console.error(
@@ -159,10 +142,39 @@ function App() {
       {screen === "dashboard" && (
         <AntaraDashboard
           key="dashboard"
+          hasCase={
+            Boolean(caseRecord) &&
+            Boolean(structuredIncident)
+          }
           onQuickExit={quickExit}
           onRecord={() => {
             setRecordError(null);
             setScreen("record");
+          }}
+          onStructure={() => {
+            if (structuredIncident && caseRecord) {
+              setScreen("structure");
+            }
+          }}
+          onPreserve={() => {
+            if (caseRecord) {
+              setScreen("preserve");
+            }
+          }}
+          onPrepare={() => {
+            if (caseRecord) {
+              setScreen("prepare");
+            }
+          }}
+          onNavigate={() => {
+            if (caseRecord) {
+              setScreen("navigate");
+            }
+          }}
+          onHandoff={() => {
+            if (caseRecord) {
+              setScreen("handoff");
+            }
           }}
         />
       )}
@@ -244,9 +256,13 @@ function App() {
             caseRecord.incident_count ??
             0
           }
-          onBack={() => setScreen("structure")}
+          onBack={() =>
+            setScreen("structure")
+          }
           onQuickExit={quickExit}
-          onContinue={() => setScreen("prepare")}
+          onContinue={() =>
+            setScreen("prepare")
+          }
         />
       )}
 
@@ -254,9 +270,13 @@ function App() {
         <PrepareCase
           key="prepare"
           availableTags={caseRecord.tags ?? []}
-          onBack={() => setScreen("preserve")}
+          onBack={() =>
+            setScreen("preserve")
+          }
           onQuickExit={quickExit}
-          onContinue={() => setScreen("navigate")}
+          onContinue={() =>
+            setScreen("navigate")
+          }
         />
       )}
 
@@ -264,9 +284,13 @@ function App() {
         <NavigateSupport
           key="navigate"
           caseTags={caseRecord.tags ?? []}
-          onBack={() => setScreen("prepare")}
+          onBack={() =>
+            setScreen("prepare")
+          }
           onQuickExit={quickExit}
-          onContinue={() => setScreen("handoff")}
+          onContinue={() =>
+            setScreen("handoff")
+          }
         />
       )}
 
@@ -274,9 +298,13 @@ function App() {
         <HandoffCase
           key="handoff"
           availableTags={caseRecord.tags ?? []}
-          onBack={() => setScreen("navigate")}
+          onBack={() =>
+            setScreen("navigate")
+          }
           onQuickExit={quickExit}
-          onFinish={() => setScreen("dashboard")}
+          onFinish={() =>
+            setScreen("dashboard")
+          }
         />
       )}
     </AnimatePresence>
