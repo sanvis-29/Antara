@@ -1,27 +1,68 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
+
 import PetalPop from "./components/PetalPop";
 import SecretUnlock from "./components/SecretUnlock";
 import AntaraDashboard from "./components/AntaraDashboard";
 import RecordIncident, {
   type IncidentFormData,
 } from "./components/RecordIncident";
+
+import {
+  createIncident,
+  type CreatedIncident,
+} from "./services/incidentApi";
+
 import "./App.css";
 
-type Screen = "game" | "unlock" | "dashboard" | "record" | "structure";
+type Screen =
+  | "game"
+  | "unlock"
+  | "dashboard"
+  | "record"
+  | "structure";
 
 function App() {
   const [screen, setScreen] = useState<Screen>("game");
+
   const [incidentDraft, setIncidentDraft] =
     useState<IncidentFormData | null>(null);
+
+  const [savedIncident, setSavedIncident] =
+    useState<CreatedIncident | null>(null);
+
+  const [recordSaving, setRecordSaving] = useState(false);
+
+  const [recordError, setRecordError] =
+    useState<string | null>(null);
 
   const quickExit = () => {
     setScreen("game");
   };
 
-  const handleIncident = (data: IncidentFormData) => {
+  const handleIncident = async (
+    data: IncidentFormData
+  ) => {
     setIncidentDraft(data);
-    setScreen("structure");
+    setRecordSaving(true);
+    setRecordError(null);
+
+    try {
+      const incident = await createIncident(data);
+
+      setSavedIncident(incident);
+      setScreen("structure");
+    } catch (error) {
+      console.error("Could not create incident:", error);
+
+      setRecordError(
+        error instanceof Error
+          ? error.message
+          : "ANTARA couldn't save this record right now."
+      );
+    } finally {
+      setRecordSaving(false);
+    }
   };
 
   return (
@@ -45,30 +86,85 @@ function App() {
         <AntaraDashboard
           key="dashboard"
           onQuickExit={quickExit}
-          onRecord={() => setScreen("record")}
+          onRecord={() => {
+            setRecordError(null);
+            setScreen("record");
+          }}
         />
       )}
 
       {screen === "record" && (
-        <RecordIncident
-          key="record"
-          onBack={() => setScreen("dashboard")}
-          onQuickExit={quickExit}
-          onContinue={handleIncident}
-        />
+        <div key="record">
+          <RecordIncident
+            onBack={() => setScreen("dashboard")}
+            onQuickExit={quickExit}
+            onContinue={handleIncident}
+          />
+
+          {recordSaving && (
+            <div className="record-status-overlay">
+              <div className="record-status-card">
+                <span className="record-status-mark">◇</span>
+
+                <strong>Preserving your record...</strong>
+
+                <p>
+                  ANTARA is securely adding this experience
+                  to your case.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {recordError && (
+            <div className="record-error-toast">
+              <div>
+                <strong>We couldn't save this yet.</strong>
+                <span>{recordError}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setRecordError(null)}
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {screen === "structure" && (
-        <div className="antara-placeholder" key="structure">
+        <div
+          className="antara-placeholder"
+          key="structure"
+        >
           <div>
-            <p className="dashboard-kicker">RECORD SAVED LOCALLY</p>
-            <h1>Ready to structure.</h1>
+            <p className="dashboard-kicker">
+              02 — STRUCTURE
+            </p>
 
-            <p>{incidentDraft?.description}</p>
+            <h1>Record preserved.</h1>
 
-            <button onClick={() => setScreen("record")}>Back</button>
+            <p>
+              {savedIncident?.description ??
+                incidentDraft?.description}
+            </p>
 
-            <button onClick={quickExit}>Quick Exit</button>
+            <p>
+              ANTARA can now organise this experience into
+              your Case Record.
+            </p>
+
+            <button
+              onClick={() => setScreen("record")}
+            >
+              Back
+            </button>
+
+            <button onClick={quickExit}>
+              Quick Exit
+            </button>
           </div>
         </div>
       )}
