@@ -3,11 +3,11 @@ import { apiRequest } from "./api";
 export interface GuardianBackupRequest {
   guardian_name: string;
   guardian_contact?: string | null;
+  unlock_pin: string;
 }
 
 export interface GuardianBackupResponse {
   guardian_id: string;
-  recovery_code: string;
   backed_up_at: string;
   message: string;
 }
@@ -15,7 +15,7 @@ export interface GuardianBackupResponse {
 export interface GuardianRecoveryResponse {
   user_id: string;
   backed_up_at: string;
-  incidents: Array<Record<string, unknown>>;
+  incidents: unknown[];
 }
 
 export async function createGuardianBackup(
@@ -32,7 +32,7 @@ export async function createGuardianBackup(
 
 export async function recoverGuardianBackup(
   guardianId: string,
-  recoveryCode: string
+  unlockPin: string
 ): Promise<GuardianRecoveryResponse> {
   return apiRequest<GuardianRecoveryResponse>(
     "/api/guardian/recover",
@@ -40,7 +40,7 @@ export async function recoverGuardianBackup(
       method: "POST",
       body: JSON.stringify({
         guardian_id: guardianId,
-        recovery_code: recoveryCode,
+        unlock_pin: unlockPin,
       }),
     }
   );

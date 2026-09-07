@@ -22,16 +22,24 @@ export default function PreserveCase({
 }: Props) {
   const [guardianName, setGuardianName] = useState("");
   const [guardianContact, setGuardianContact] = useState("");
+  const [unlockPin, setUnlockPin] = useState("");
 
   const [backup, setBackup] =
     useState<GuardianBackupResponse | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const createBackup = async () => {
-    if (!guardianName.trim()) return;
+    if (!guardianName.trim()) {
+      setError("Choose a Guardian before creating the protected copy.");
+      return;
+    }
+
+    if (!/^\d{4,8}$/.test(unlockPin)) {
+      setError("Enter a private PIN containing 4 to 8 digits.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -39,11 +47,14 @@ export default function PreserveCase({
     try {
       const result = await createGuardianBackup({
         guardian_name: guardianName.trim(),
-        guardian_contact:
-          guardianContact.trim() || null,
+        guardian_contact: guardianContact.trim() || null,
+        unlock_pin: unlockPin,
       });
 
       setBackup(result);
+
+      // Do not keep the PIN in component state after use.
+      setUnlockPin("");
     } catch (err) {
       console.error(err);
 
@@ -54,24 +65,6 @@ export default function PreserveCase({
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const copyRecoveryCode = async () => {
-    if (!backup) return;
-
-    try {
-      await navigator.clipboard.writeText(
-        backup.recovery_code
-      );
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch {
-      setCopied(false);
     }
   };
 
@@ -148,8 +141,8 @@ export default function PreserveCase({
 
             <div>
               <span>03</span>
-              <strong>Recovery path</strong>
-              <small>Guardian ID + recovery code</small>
+              <strong>Survivor-controlled access</strong>
+              <small>Private PIN required</small>
             </div>
           </div>
         </aside>
@@ -173,9 +166,9 @@ export default function PreserveCase({
                   </h2>
 
                   <p>
-                    Name a trusted Guardian for this backup.
-                    ANTARA will create a recovery credential
-                    for this protected snapshot.
+                    Choose a trusted Guardian to preserve a
+                    protected backup. Your Guardian does not
+                    receive readable access to your Case Record.
                   </p>
                 </div>
 
@@ -220,9 +213,10 @@ export default function PreserveCase({
                       </span>
 
                       <small>
-                        Used as a reference for this Guardian
-                        record. ANTARA does not automatically
-                        send the backup to this contact.
+                        Used only as a reference for this
+                        Guardian record. ANTARA does not
+                        automatically send your information
+                        to this contact.
                       </small>
 
                       <input
@@ -239,19 +233,59 @@ export default function PreserveCase({
                   </div>
                 </div>
 
+                <div className="guardian-form-card">
+                  <div className="guardian-form-number">
+                    03
+                  </div>
+
+                  <div className="guardian-form-content">
+                    <label>
+                      <span>Private PIN</span>
+
+                      <small>
+                        This PIN controls access to Guardian
+                        Vault recovery. Your Guardian does not
+                        receive or know this PIN.
+                      </small>
+
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        value={unlockPin}
+                        onChange={(event) => {
+                          const value =
+                            event.target.value.replace(
+                              /\D/g,
+                              ""
+                            );
+
+                          setUnlockPin(
+                            value.slice(0, 8)
+                          );
+                        }}
+                        placeholder="4–8 digit PIN"
+                        maxLength={8}
+                      />
+                    </label>
+                  </div>
+                </div>
+
                 <div className="guardian-explainer">
                   <span>◇</span>
 
                   <div>
                     <strong>
-                      What happens when you protect it?
+                      The Guardian preserves it. You control
+                      access.
                     </strong>
 
                     <p>
-                      ANTARA creates a snapshot of your
-                      incident records, encrypts that
-                      snapshot, and stores a protected
-                      Guardian backup.
+                      ANTARA creates an encrypted snapshot of
+                      your Case Record. The Guardian provides
+                      a recovery path if your primary device
+                      becomes unavailable, but does not get
+                      readable access to your information.
                     </p>
                   </div>
                 </div>
@@ -265,13 +299,15 @@ export default function PreserveCase({
                 <button
                   className="guardian-create-button"
                   disabled={
-                    !guardianName.trim() || loading
+                    !guardianName.trim() ||
+                    !/^\d{4,8}$/.test(unlockPin) ||
+                    loading
                   }
                   onClick={createBackup}
                 >
                   {loading
                     ? "Creating protected copy..."
-                    : "Create Guardian Copy →"}
+                    : "Protect with Guardian →"}
                 </button>
               </motion.div>
             ) : (
@@ -286,54 +322,38 @@ export default function PreserveCase({
                   </div>
 
                   <span className="structure-eyebrow">
-                    PROTECTED COPY CREATED
+                    GUARDIAN COPY PROTECTED
                   </span>
 
                   <h2>
                     Your Case Record now has a
-                    recovery path.
+                    protected recovery path.
                   </h2>
 
                   <p>
-                    Keep the information below somewhere
-                    you can safely access if this device
-                    becomes unavailable.
+                    An encrypted Guardian copy has been
+                    created. Your Guardian helps preserve it,
+                    but does not receive readable access to
+                    your Case Record.
                   </p>
                 </div>
 
-                <div className="recovery-warning">
-                  <span>!</span>
+                <div className="guardian-explainer">
+                  <span>◇</span>
 
                   <div>
                     <strong>
-                      This recovery code is shown once.
+                      Guardian = preservation.
+                      You = access.
                     </strong>
 
                     <p>
-                      ANTARA does not store the readable
-                      recovery code. Save it somewhere safe
-                      before continuing.
+                      If your primary device becomes
+                      unavailable, the protected copy can be
+                      located through its Guardian ID.
+                      Recovery still requires your private PIN.
                     </p>
                   </div>
-                </div>
-
-                <div className="recovery-card">
-                  <div className="recovery-card-label">
-                    RECOVERY CODE
-                  </div>
-
-                  <div className="recovery-code">
-                    {backup.recovery_code}
-                  </div>
-
-                  <button
-                    onClick={copyRecoveryCode}
-                    className="copy-recovery-button"
-                  >
-                    {copied
-                      ? "Copied ✓"
-                      : "Copy code"}
-                  </button>
                 </div>
 
                 <div className="guardian-details">
@@ -347,6 +367,11 @@ export default function PreserveCase({
                     <strong>
                       {backup.guardian_id}
                     </strong>
+                  </div>
+
+                  <div>
+                    <span>Access</span>
+                    <strong>Private PIN protected</strong>
                   </div>
 
                   <div>

@@ -1,32 +1,41 @@
 """
-Guardian Vault: lets a survivor back up an encrypted snapshot of their case
-data to a trusted contact ("Guardian"), and recover it later using a
-recovery code -- e.g. after a phone is lost, seized, or wiped.
+Guardian Vault
+
+Creates an encrypted snapshot of a survivor's case so the primary device
+is not the single point of failure.
+
+The Guardian provides redundancy, not readable access.
+
+For this prototype, recovery is authorised using the survivor's private PIN.
+The PIN is verified using a secure hash; it is never stored in plaintext.
+The server-side Fernet key performs encryption/decryption of the vault.
 """
+
 import json
-import secrets
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
 from app.models.guardian import Guardian
 from app.models.incident import Incident
+from app.models.user import User
 from app.services.encryption_services import encrypt_text, decrypt_text
 from app.utils.security import hash_password, verify_password
 
 
-def generate_recovery_code() -> str:
-    """A short human-typeable recovery code, e.g. 'X7K2-9PLQ'."""
-    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no ambiguous chars
-    code = "".join(secrets.choice(alphabet) for _ in range(8))
-    return f"{code[:4]}-{code[4:]}"
-
-
 def build_backup_snapshot(db: Session, user_id: str) -> dict:
-    """Collects the minimum data needed to reconstruct a user's case on recovery."""
-    incidents = db.query(Incident).filter(Incident.user_id == user_id).all()
+    """Collect the case information required for the prototype backup."""
+
+    incidents = (
+        db.query(Incident)
+        .filter(Incident.user_id == user_id)
+        .all()
+    )
+
     snapshot_incidents = [
-        inc.to_contract_dict(decrypt_text(inc.description_encrypted))
+        inc.to_contract_dict(
+            decrypt_text(inc.description_encrypted)
+        )
         for inc in incidents
     ]
 
@@ -37,45 +46,82 @@ def build_backup_snapshot(db: Session, user_id: str) -> dict:
     }
 
 
-def create_backup(db: Session, user_id: str, guardian_name: str, guardian_contact: str) -> tuple[Guardian, str]:
-    """Creates or updates a Guardian record with an encrypted backup blob.
-    Returns the Guardian row and the plaintext recovery code (shown once)."""
-    snapshot = build_backup_snapshot(db, user_id)
-    blob = encrypt_text(json.dumps(snapshot))
-    recovery_code = generate_recovery_code()
+def create_backup(
+    db: Session,
+    user_id: str,
+    guardian_name: str,
+    guardian_contact: str | None,
+    unlock_pin: str,
+) -> Guardian:
+    """
+    Create/update an encrypted Guardian backup.
 
-    # Check if a record already exists for this guardian contact
+    The first PIN used for Guardian Vault becomes the survivor's private
+    Guardian-Vault PIN for this prototype. Later backups must use the same PIN.
+    """
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise ValueError("User not found.")
+
+    # Establish the private PIN if one has not yet been configured.
+    if not user.hashed_unlock_pin:
+        user.hashed_unlock_pin = hash_password(unlock_pin)
+
+    elif not verify_password(
+        unlock_pin,
+        user.hashed_unlock_pin,
+    ):
+        raise ValueError("Incorrect private PIN.")
+
+    snapshot = build_backup_snapshot(db, user_id)
+
+    # The backup itself is encrypted using ANTARA's persisted Fernet key.
+    blob = encrypt_text(json.dumps(snapshot))
+
     guardian = (
         db.query(Guardian)
-        .filter(Guardian.user_id == user_id, Guardian.contact == guardian_contact)
+        .filter(
+            Guardian.user_id == user_id,
+            Guardian.contact == guardian_contact,
+        )
         .first()
     )
 
     if not guardian:
-        guardian = Guardian(user_id=user_id, name=guardian_name, contact=guardian_contact)
+        guardian = Guardian(
+            user_id=user_id,
+            name=guardian_name,
+            contact=guardian_contact,
+        )
         db.add(guardian)
 
     guardian.name = guardian_name
+    guardian.contact = guardian_contact
     guardian.backup_blob_encrypted = blob
-    guardian.recovery_code_hash = hash_password(recovery_code)
     guardian.last_backup_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(guardian)
 
-    return guardian, recovery_code
+    return guardian
 
 
 def recover_backup(
     db: Session,
     guardian_id: str,
-    recovery_code: str
+    unlock_pin: str,
 ) -> dict:
     """
-    Recover a Guardian backup without requiring access to the
-    original account/device.
+    Recover an encrypted Guardian backup using the survivor's private PIN.
 
-    Access is protected by the Guardian ID + recovery code pair.
+    The Guardian ID locates the encrypted vault.
+    The survivor's PIN authorises access.
     """
 
     guardian = (
@@ -85,20 +131,25 @@ def recover_backup(
     )
 
     if not guardian or not guardian.backup_blob_encrypted:
-        raise ValueError("No backup found for this Guardian.")
+        raise ValueError("No Guardian backup found.")
 
-    if (
-        not guardian.recovery_code_hash
-        or not verify_password(
-            recovery_code,
-            guardian.recovery_code_hash
-        )
+    user = (
+        db.query(User)
+        .filter(User.id == guardian.user_id)
+        .first()
+    )
+
+    if not user or not user.hashed_unlock_pin:
+        raise ValueError("Private PIN is not configured.")
+
+    if not verify_password(
+        unlock_pin,
+        user.hashed_unlock_pin,
     ):
-        raise ValueError("Invalid recovery code.")
+        raise ValueError("Incorrect private PIN.")
 
     plain_json = decrypt_text(
         guardian.backup_blob_encrypted
     )
 
     return json.loads(plain_json)
-

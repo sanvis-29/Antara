@@ -8,39 +8,69 @@ from app.schemas.guardian import (
     GuardianBackupResponse,
     GuardianRecoverRequest,
 )
-from app.services.guardian_service import create_backup, recover_backup
+from app.services.guardian_service import (
+    create_backup,
+    recover_backup,
+)
 
-router = APIRouter(prefix="/api/guardian", tags=["guardian"])
+
+router = APIRouter(
+    prefix="/api/guardian",
+    tags=["guardian"],
+)
 
 
-@router.post("/backup", response_model=GuardianBackupResponse)
+@router.post(
+    "/backup",
+    response_model=GuardianBackupResponse,
+)
 def backup(
     payload: GuardianBackupRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    guardian, recovery_code = create_backup(
-        db, current_user.id, payload.guardian_name, payload.guardian_contact
-    )
+    try:
+        guardian = create_backup(
+            db=db,
+            user_id=current_user.id,
+            guardian_name=payload.guardian_name,
+            guardian_contact=payload.guardian_contact,
+            unlock_pin=payload.unlock_pin,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        )
+
     return GuardianBackupResponse(
         guardian_id=guardian.guardian_id,
-        recovery_code=recovery_code,
         backed_up_at=guardian.last_backup_at,
     )
 
 
 @router.post("/recover")
-def recover(payload: GuardianRecoverRequest, db: Session = Depends(get_db)):
+def recover(
+    payload: GuardianRecoverRequest,
+    db: Session = Depends(get_db),
+):
     """
-    Intentionally NOT behind get_current_user: recovery is the path used
-    precisely when a survivor has lost access to their original account/device.
-    Protection instead comes from the guardian_id + recovery_code pair, which
-    is never stored in plaintext.
+    Recovery deliberately does not require the original authenticated session.
+
+    The Guardian ID identifies the encrypted backup and the survivor's
+    private PIN authorises recovery.
     """
+
     try:
-        snapshot = recover_backup(db, payload.guardian_id, payload.recovery_code)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return recover_backup(
+            db=db,
+            guardian_id=payload.guardian_id,
+            unlock_pin=payload.unlock_pin,
+        )
 
-    return snapshot
-
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        )
