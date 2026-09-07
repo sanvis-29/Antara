@@ -10,9 +10,8 @@ from app.models.user import gen_id
 class Guardian(Base):
     """
     A trusted contact who can hold an encrypted backup of a survivor's case
-    data for recovery if the survivor's device is lost, seized, or wiped.
-    The Guardian never sees plaintext -- backup_blob_encrypted is opaque to
-    everyone except someone holding the survivor's recovery key/PIN.
+    data if the survivor's device is lost, seized, or wiped. The Guardian
+    never sees plaintext; backup_blob_encrypted remains opaque to the system.
     """
     __tablename__ = "guardians"
 
@@ -23,6 +22,7 @@ class Guardian(Base):
     contact = Column(String, nullable=True)  # phone/email, optional by design
 
     backup_blob_encrypted = Column(Text, nullable=True)
+    # Retained for schema compatibility; intentionally unused.
     recovery_code_hash = Column(String, nullable=True)
 
     # Added timezone=True to handle UTC awareness cleanly
